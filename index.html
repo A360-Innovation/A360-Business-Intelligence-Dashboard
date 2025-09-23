@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aesthetics360</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --background: 220 20% 97%; /* #F7F8FA */
+        --foreground: 224 10% 28%; /* #42474E */
+        --card: 0 0% 100%; /* #FFFFFF */
+        --card-foreground: 224 10% 28%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 224 10% 28%;
+        --primary: 212 56% 58%; /* #6B8CC3 */
+        --primary-foreground: 0 0% 100%;
+        --secondary: 220 17% 95%; /* #F2F4F7 */
+        --secondary-foreground: 224 10% 28%;
+        --muted: 220 17% 95%;
+        --muted-foreground: 221 9% 52%; /* #7A818A */
+        --accent: 220 20% 97%;
+        --accent-foreground: 224 10% 28%;
+        --destructive: 0 84% 60%;
+        --destructive-foreground: 0 0% 100%;
+        --success: 161 68% 30%;
+        --warning: 33 94% 51%;
+        --border: 220 13% 91%; /* #E8EAEB */
+        --input: 220 13% 91%;
+        --ring: 212 56% 58%;
+        --radius: 0.5rem;
+      }
+      body {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        background-color: hsl(var(--background));
+      }
+      .recharts-default-tooltip {
+        border-radius: 0.5rem !important;
+        border: 1px solid hsl(var(--border)) !important;
+        background-color: hsl(var(--card)) !important;
+        box-shadow: 0px 0px 16px 2px rgba(0, 0, 0, 0.04);
+        color: hsl(var(--card-foreground)) !important;
+      }
+    </style>
+    <script>
+      tailwind.config = {
+        theme: {
+          container: {
+            center: true,
+            padding: "2rem",
+            screens: { "2xl": "1400px" },
+          },
+          extend: {
+            colors: {
+              border: 'hsl(var(--border))',
+              input: 'hsl(var(--input))',
+              ring: 'hsl(var(--ring))',
+              background: 'hsl(var(--background))',
+              foreground: 'hsl(var(--foreground))',
+              primary: {
+                DEFAULT: 'hsl(var(--primary))',
+                foreground: 'hsl(var(--primary-foreground))',
+              },
+              secondary: {
+                DEFAULT: 'hsl(var(--secondary))',
+                foreground: 'hsl(var(--secondary-foreground))',
+              },
+              destructive: {
+                DEFAULT: 'hsl(var(--destructive))',
+                foreground: 'hsl(var(--destructive-foreground))',
+              },
+              success: 'hsl(var(--success))',
+              warning: 'hsl(var(--warning))',
+              muted: {
+                DEFAULT: 'hsl(var(--muted))',
+                foreground: 'hsl(var(--muted-foreground))',
+              },
+              accent: {
+                DEFAULT: 'hsl(var(--accent))',
+                foreground: 'hsl(var(--accent-foreground))',
+              },
+              popover: {
+                DEFAULT: 'hsl(var(--popover))',
+                foreground: 'hsl(var(--popover-foreground))',
+              },
+              card: {
+                DEFAULT: 'hsl(var(--card))',
+                foreground: 'hsl(var(--card-foreground))',
+              },
+            },
+            borderRadius: {
+              lg: 'var(--radius)',
+              md: 'calc(var(--radius) - 2px)',
+              sm: 'calc(var(--radius) - 4px)',
+              xl: 'calc(var(--radius) + 4px)',
+            },
+            keyframes: {
+              'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },
+              'accordion-up': { from: { height: 'var(--radix-accordion-content-height)' }, to: { height: '0' } },
+            },
+            animation: {
+              'accordion-down': 'accordion-down 0.2s ease-out',
+              'accordion-up': 'accordion-up 0.2s ease-out',
+            },
+            boxShadow: {
+              'sm': '0px 0px 16px 2px rgba(0, 0, 0, 0.04)',
+              'md': '0px 0px 34px 3px rgba(0, 0, 0, 0.06)',
+            }
+          }
+        }
+      }
+    </script>
+    <script type="importmap">
+    {
+      "imports": {
+        "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
+        "react/": "https://aistudiocdn.com/react@^19.1.1/",
+        "react": "https://aistudiocdn.com/react@^19.1.1",
+        "recharts": "https://aistudiocdn.com/recharts@^3.2.1",
+        "clsx": "https://aistudiocdn.com/clsx@^2.1.1",
+        "tailwind-merge": "https://aistudiocdn.com/tailwind-merge@^2.4.0",
+        "class-variance-authority": "https://aistudiocdn.com/class-variance-authority@^0.7.0",
+        "lucide-react": "https://aistudiocdn.com/lucide-react@^0.412.0"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

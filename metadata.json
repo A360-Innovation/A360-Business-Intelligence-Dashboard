@@ -1,0 +1,5 @@
+{
+  "name": "Aesthetics360",
+  "description": "A modern, interactive dashboard for Aesthetics360, a dermatology/aesthetic clinic, displaying de-identified consultation data in real time with various analytical charts and metrics.",
+  "requestFramePermissions": []
+}
