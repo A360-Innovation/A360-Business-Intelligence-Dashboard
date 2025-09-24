@@ -1,8 +1,8 @@
-
 import React from 'react';
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, Bar } from 'recharts';
 import { DemographicConcern, SeasonalTrend } from '../types';
 import DashboardCard from './DashboardCard';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip as RechartsTooltip, LabelList } from 'recharts';
+import { Flower2, Sun, Leaf, Snowflake } from 'lucide-react';
 
 interface MarketingOpportunitiesProps {
   demographicsData: DemographicConcern[];
@@ -10,63 +10,108 @@ interface MarketingOpportunitiesProps {
   onItemClick: (title: string) => void;
 }
 
-const barColors = ['bg-primary', 'bg-primary/70', 'bg-primary/40'];
+const seasonIcons: { [key: string]: React.ElementType } = {
+    Spring: Flower2,
+    Summer: Sun,
+    Fall: Leaf,
+    Winter: Snowflake,
+};
+
+const concernColors: { [key: string]: string } = {
+    'Acne': '#547BA3',
+    'Pigmentation': '#7795B9',
+    'Scarring': '#9AB3D0',
+    'Wrinkles': '#BDD1E6',
+    'Texture': '#E0EEFA',
+    'Sagging': '#416288',
+    'Volume Loss': '#324D6A',
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card p-3 border border-border rounded-lg shadow-sm">
+          <p className="font-bold text-card-foreground mb-2">Ages {label}</p>
+          {payload.slice().reverse().map((pld: any) => (
+            <p key={pld.dataKey} style={{ color: pld.fill }} className="text-sm">
+              {`${pld.dataKey}: ${pld.value}%`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+};
 
 const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demographicsData, seasonalData, onItemClick }) => {
+  // Fix: Replaced `map().flat()` with `reduce()` to correctly flatten the array of concerns and resolve type inference issues.
+  const allConcerns: string[] = [...new Set(demographicsData.reduce<string[]>((acc, d) => acc.concat(d.concerns.map(c => c.name)), []))];
+    
+  const chartData = demographicsData.map(group => {
+      const groupData: { [key: string]: any } = { group: group.group };
+      group.concerns.forEach(concern => {
+          groupData[concern.name] = concern.value;
+      });
+      return groupData;
+  });
+
   return (
     <DashboardCard title="Marketing & Growth Opportunities" tooltipText="Data is segmented by patient age and season from transcript timestamps and demographics.">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
         {/* Concerns by Demographics */}
         <div>
           <h4 className="font-semibold text-foreground mb-3">Concerns by Demographics</h4>
-          <div className="space-y-4">
-            {demographicsData.map(group => (
-              <div key={group.group} onClick={() => onItemClick(`Demographics: ${group.group}`)} className="cursor-pointer p-3 rounded-lg border hover:bg-accent transition-colors">
-                <p className="font-bold text-sm text-muted-foreground mb-2">Ages {group.group}</p>
-                <ul className="space-y-2">
-                  {group.concerns.map((concern, index) => (
-                    <li key={concern.name} className="text-xs text-muted-foreground">
-                      <div className="flex justify-between items-center">
-                        <span>{concern.name}</span>
-                        <span className="font-medium text-foreground">{concern.value}%</span>
-                      </div>
-                      <div className="w-full bg-secondary rounded-full h-1.5 mt-1 overflow-hidden">
-                        <div className={`${barColors[index]} h-1.5 rounded-full`} style={{ width: `${concern.value}%` }}></div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+          <div style={{ width: '100%', height: 320 }}>
+            <ResponsiveContainer>
+              <BarChart
+                layout="vertical"
+                data={chartData}
+                margin={{ top: 5, right: 20, left: -10, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
+                <XAxis type="number" tickFormatter={(tick) => `${tick}%`} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                <YAxis dataKey="group" type="category" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} width={40}/>
+                <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent))' }} />
+                <Legend
+                  iconType="circle"
+                  wrapperStyle={{
+                    fontSize: '12px',
+                    paddingTop: '10px',
+                    color: 'hsl(var(--muted-foreground))',
+                    overflowX: 'auto',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '100%',
+                    paddingBottom: '5px'
+                  }}
+                />
+                {allConcerns.map(concern => (
+                    <Bar key={concern} dataKey={concern} stackId="a" fill={concernColors[concern] || '#cccccc'} />
+                ))}
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
 
         {/* Seasonal Trends */}
         <div>
           <h4 className="font-semibold text-foreground mb-3">Seasonal Trends</h4>
-           <div style={{ width: '100%', height: 350 }} onClick={() => onItemClick('Seasonal Trends')}>
-                <ResponsiveContainer>
-                    <BarChart data={seasonalData} layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 20 }}>
-                        <XAxis type="number" hide domain={[0, 40]} />
-                        <YAxis type="category" dataKey="season" width={50} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
-                        <RechartsTooltip cursor={{fill: 'hsl(var(--accent))'}} contentStyle={{backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 'var(--radius)'}} />
-                        <Bar dataKey="increase" fill="hsl(var(--primary))" background={{ fill: 'hsl(var(--background))' }} radius={[0, 4, 4, 0]} barSize={25}>
-                           <LabelList 
-                             dataKey="increase" 
-                             position="right"
-                             formatter={(value: number) => `+${value}%`}
-                             style={{ fill: 'hsl(var(--primary))', fontSize: 12, fontWeight: 'bold' }}
-                           />
-                           <LabelList
-                             dataKey="concern"
-                             position="insideLeft"
-                             offset={10}
-                             style={{ fill: 'hsl(var(--primary-foreground))', fontSize: 12 }}
-                           />
-                        </Bar>
-                    </BarChart>
-                </ResponsiveContainer>
-            </div>
+           <div className="grid grid-cols-2 gap-4 h-full">
+              {seasonalData.map((item) => {
+                const Icon = seasonIcons[item.season];
+                return (
+                  <div
+                    key={item.season}
+                    onClick={() => onItemClick(`Seasonal Trend: ${item.season}`)}
+                    className="cursor-pointer p-4 rounded-lg border hover:bg-accent transition-colors flex flex-col items-center justify-center text-center"
+                  >
+                    {Icon && <Icon className="h-6 w-6 text-primary mb-2" />}
+                    <p className="font-semibold text-sm text-foreground">{item.season}</p>
+                    <p className="text-2xl font-bold text-primary mt-1">+{item.increase}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">{item.concern}</p>
+                  </div>
+                );
+              })}
+           </div>
         </div>
       </div>
     </DashboardCard>

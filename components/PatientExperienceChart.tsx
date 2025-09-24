@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { PatientExperienceData } from '../types';
@@ -35,14 +34,21 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
   
   return (
     <DashboardCard title="Patient Experience & Sentiment" tooltipText="Scores are derived from NLP markers in transcripts, analyzing patient language for satisfaction and understanding.">
-      <div style={{ width: '100%', height: 300 }}>
+      <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
           <LineChart data={combinedData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
             <YAxis domain={[70, 100]} tickFormatter={(tick) => `${tick}%`} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}/>
             <RechartsTooltip content={<CustomTooltip />} />
-            <Legend iconType="circle" wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+            <Legend
+              iconType="circle"
+              wrapperStyle={{
+                fontSize: '12px',
+                paddingTop: '10px',
+                color: 'hsl(var(--muted-foreground))',
+              }}
+            />
             <Line 
                 name="Overall Satisfaction" 
                 type="monotone" 

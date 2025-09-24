@@ -29,7 +29,7 @@ const SalesExcellence: React.FC<SalesExcellenceProps> = ({ scores, onScoreClick 
                 getScoreClasses(item.score)
             )}
           >
-            <p className="text-3xl font-bold">{item.score}</p>
+            <p className="text-3xl font-bold">{item.score}%</p>
             <p className="text-xs text-current/80 mt-1">{item.skill}</p>
           </div>
         ))}

@@ -56,17 +56,29 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
         </Button>
       )}
     >
-      <div style={{ width: '100%', height: 300 }}>
+      <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
           <PieChart>
             <RechartsTooltip content={<CustomTooltip />} />
-            <Legend iconType="circle" layout="vertical" verticalAlign="middle" align="right" />
+            <Legend
+              iconType="circle"
+              layout="vertical"
+              verticalAlign="middle"
+              align="right"
+              wrapperStyle={{
+                fontSize: '12px',
+                color: 'hsl(var(--muted-foreground))',
+                maxHeight: '300px',
+                overflowY: 'auto',
+                paddingLeft: '1rem',
+              }}
+            />
             <Pie
               data={activeData}
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius={110}
+              outerRadius={120}
               fill="#8884d8"
               dataKey="value"
               nameKey="name"

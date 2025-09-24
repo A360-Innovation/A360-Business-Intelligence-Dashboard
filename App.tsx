@@ -6,10 +6,10 @@ import DashboardPage from './pages/DashboardPage';
 import ChatPage from './pages/ChatPage';
 
 const App: React.FC = () => {
-  const [currentPage, setCurrentPage] = useState<Page>('patients');
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
 
   const pageTitles: { [key in Page]: string } = {
-    patients: 'Patients',
+    dashboard: 'Dashboard',
     chat: 'A360 Chat',
   };
 
@@ -23,7 +23,7 @@ const App: React.FC = () => {
           </div>
         </header>
         <main className="flex-1 overflow-y-auto bg-background">
-          {currentPage === 'patients' && <DashboardPage />}
+          {currentPage === 'dashboard' && <DashboardPage />}
           {currentPage === 'chat' && <ChatPage />}
         </main>
       </div>

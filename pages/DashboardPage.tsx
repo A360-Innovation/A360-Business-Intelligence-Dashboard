@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Timeframe, NarrativePaneInfo } from '../types';
 import { DASHBOARD_DATA } from '../constants';
@@ -81,7 +80,7 @@ const DashboardPage: React.FC = () => {
       
       <main>
         {/* High-Level Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {data.highLevelMetrics.map((metric) => (
             <MetricCard
               key={metric.title}
@@ -94,56 +93,49 @@ const DashboardPage: React.FC = () => {
         </div>
         
         {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
-            <div className="xl:col-span-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Left Column */}
+            <div className="flex flex-col gap-6">
               <ConcernsChart 
-                data={data.concerns} 
-                onSliceClick={(name) => handleOpenNarrative(`Concern: ${name}`)}
-              />
-            </div>
-            <div className="xl:col-span-8">
-                <TreatmentTrendsChart 
-                data={data.treatmentTrends} 
-                onBarClick={(payload) => handleOpenNarrative(`Treatment Trend: ${payload.name}`)}
-              />
-            </div>
-            <div className="xl:col-span-12">
-              <PatientExperienceChart
-                satisfactionData={data.satisfactionScores}
-                educationData={data.educationScores}
-                onPointClick={(payload) => handleOpenNarrative(`Patient Experience - ${payload.month}`)}
-              />
-            </div>
-            <div className="xl:col-span-3">
-              <TopProcedures 
-                data={data.topProcedures} 
-                onItemClick={(name) => handleOpenNarrative(`Top Procedure: ${name}`)}
-              />
-            </div>
-            <div className="xl:col-span-5">
-              <SalesExcellence 
-                scores={data.salesExcellence}
-                onScoreClick={(skill) => handleOpenNarrative(`Sales Excellence: ${skill}`)}
-              />
-            </div>
-            <div className="xl:col-span-4">
-              <WorkflowQuality 
-                data={data.workflowQuality}
-                onItemClick={(title) => handleOpenNarrative(`Workflow Quality: ${title}`)}
-              />
-            </div>
-            <div className="xl:col-span-7">
+                  data={data.concerns} 
+                  onSliceClick={(name) => handleOpenNarrative(`Concern: ${name}`)}
+                />
+              <TreatmentTrendsChart 
+                  data={data.treatmentTrends} 
+                  onBarClick={(payload) => handleOpenNarrative(`Treatment Trend: ${payload.name}`)}
+                />
               <MarketingOpportunities
-                demographicsData={data.demographics}
-                seasonalData={data.seasonalTrends}
-                onItemClick={(title) => handleOpenNarrative(title)}
-              />
+                  demographicsData={data.demographics}
+                  seasonalData={data.seasonalTrends}
+                  onItemClick={(title) => handleOpenNarrative(title)}
+                />
             </div>
-            <div className="xl:col-span-5">
+
+            {/* Right Column */}
+            <div className="flex flex-col gap-6">
+              <PatientExperienceChart
+                  satisfactionData={data.satisfactionScores}
+                  educationData={data.educationScores}
+                  onPointClick={(payload) => handleOpenNarrative(`Patient Experience - ${payload.month}`)}
+                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <TopProcedures 
+                    data={data.topProcedures} 
+                    onItemClick={(name) => handleOpenNarrative(`Top Procedure: ${name}`)}
+                  />
+                <WorkflowQuality 
+                    data={data.workflowQuality}
+                    onItemClick={(title) => handleOpenNarrative(`Workflow Quality: ${title}`)}
+                  />
+              </div>
+              <SalesExcellence 
+                  scores={data.salesExcellence}
+                  onScoreClick={(skill) => handleOpenNarrative(`Sales Excellence: ${skill}`)}
+                />
               <AnalysisFields 
-                insights={data.analysisFields}
-                onItemClick={(category) => handleOpenNarrative(`Analysis: ${category}`)}
-              />
+                  insights={data.analysisFields}
+                  onItemClick={(category) => handleOpenNarrative(`Analysis: ${category}`)}
+                />
             </div>
         </div>
       </main>

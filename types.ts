@@ -1,5 +1,5 @@
 
-export type Page = 'patients' | 'chat';
+export type Page = 'dashboard' | 'chat';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
