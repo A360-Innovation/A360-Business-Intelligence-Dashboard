@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Timeframe, NarrativePaneInfo } from '../types';
-import { DASHBOARD_DATA } from '../constants';
 import MetricCard from '../components/MetricCard';
 import ConcernsChart from '../components/ConcernsChart';
 import TopProcedures from '../components/TopProcedures';
@@ -14,6 +13,8 @@ import NarrativePane from '../components/NarrativePane';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
 import { ChevronDown } from 'lucide-react';
+import { useDashboardData } from '../hooks/useDashboardData';
+import Loader from '../components/icons/Loader';
 
 const DashboardPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState<Timeframe>('Monthly');
@@ -22,8 +23,8 @@ const DashboardPage: React.FC = () => {
     title: '',
     content: '',
   });
-
-  const data = DASHBOARD_DATA[timeframe];
+  
+  const { data, loading, error } = useDashboardData();
 
   const handleOpenNarrative = (title: string) => {
     setNarrativePane({
@@ -64,15 +65,40 @@ const DashboardPage: React.FC = () => {
         </div>
         <div className="relative">
           <select className="appearance-none bg-card border border-input rounded-md shadow-sm h-9 pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring">
-            <option>Last 30 Days</option>
-            <option>Last 60 Days</option>
-            <option>Last 90 Days</option>
+            <option>Last 4 months</option>
+            {/* <option>Last 60 Days</option>
+            <option>Last 90 Days</option> */}
           </select>
           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         </div>
       </div>
     </header>
   );
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[calc(100vh-150px)]">
+          <div className="flex flex-col items-center gap-4">
+            <Loader />
+            <p className="text-muted-foreground">Loading Dashboard Data...</p>
+          </div>
+      </div>
+    );
+  }
+
+  if (error || !data) {
+    return (
+      <div className="p-4 sm:p-6 lg:p-8">
+        <DashboardHeader />
+        <div className="flex items-center justify-center h-[calc(100vh-250px)]">
+            <div className="text-center p-6 bg-destructive/10 border border-destructive rounded-lg">
+              <h2 className="text-lg font-semibold text-destructive">Failed to Load Dashboard</h2>
+              <p className="text-destructive/80 mt-1">{error || "An unknown error occurred. Please try again later."}</p>
+            </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic } from 'lucide-react';
 
 interface SidebarProps {
   currentPage: Page;
@@ -12,6 +12,7 @@ interface SidebarProps {
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
+  { id: 'podcasts', label: 'Podcasts', icon: Mic },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
@@ -24,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
       </div>
       <nav className="flex-1 p-2 space-y-1">
         {navItems.map((item) => {
-          const isClickable = item.id === 'dashboard' || item.id === 'chat';
+          const isClickable = item.id === 'dashboard' || item.id === 'chat' || item.id === 'podcasts';
           const isActive = currentPage === item.id;
           return (
             <a

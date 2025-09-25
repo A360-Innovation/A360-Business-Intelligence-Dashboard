@@ -44,8 +44,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demographicsData, seasonalData, onItemClick }) => {
-  // Fix: Replaced `map().flat()` with `reduce()` to correctly flatten the array of concerns and resolve type inference issues.
-  const allConcerns: string[] = [...new Set(demographicsData.reduce<string[]>((acc, d) => acc.concat(d.concerns.map(c => c.name)), []))];
+  // Fix: Replaced `flatMap` with `map` followed by `flat` to ensure correct type inference.
+  const allConcerns: string[] = [...new Set(demographicsData.map(d => d.concerns.map(c => c.name)).flat())];
     
   const chartData = demographicsData.map(group => {
       const groupData: { [key: string]: any } = { group: group.group };

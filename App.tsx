@@ -1,33 +1,50 @@
 
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { Page } from './types';
 import Sidebar from './components/layout/Sidebar';
 import DashboardPage from './pages/DashboardPage';
 import ChatPage from './pages/ChatPage';
+import PodcastsPage from './pages/PodcastsPage';
+import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
+import Player from './components/Player';
+import { cn } from './lib/utils';
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
+  const { currentPodcast } = useContext(PlayerContext);
 
   const pageTitles: { [key in Page]: string } = {
     dashboard: 'Dashboard',
     chat: 'A360 Chat',
+    podcasts: 'Weekly Podcasts',
   };
 
   return (
     <div className="flex h-screen bg-background text-foreground text-sm">
       <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between py-4 px-6 border-b border-border bg-card">
+        <header className="flex items-center justify-between py-4 px-6 border-b border-border bg-card flex-shrink-0">
           <div className="flex items-center">
             <h1 className="text-lg font-semibold text-foreground">{pageTitles[currentPage]}</h1>
           </div>
         </header>
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className={cn("flex-1 overflow-y-auto bg-background", currentPodcast && "pb-24")}>
           {currentPage === 'dashboard' && <DashboardPage />}
           {currentPage === 'chat' && <ChatPage />}
+          {currentPage === 'podcasts' && <PodcastsPage />}
         </main>
+        {currentPodcast && <Player />}
       </div>
     </div>
+  );
+};
+
+
+const App: React.FC = () => {
+  return (
+    <PlayerProvider>
+      <AppContent />
+    </PlayerProvider>
   );
 };
 

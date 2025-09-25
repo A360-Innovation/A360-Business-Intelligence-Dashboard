@@ -1,5 +1,5 @@
 
-export type Page = 'dashboard' | 'chat';
+export type Page = 'dashboard' | 'chat' | 'podcasts';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -69,4 +69,14 @@ export interface NarrativePaneInfo {
   isOpen: boolean;
   title: string;
   content: string;
+}
+
+export interface Podcast {
+  id: number;
+  title: string;
+  date: string;
+  duration: string;
+  summary: string;
+  audioUrl: string;
+  imageUrl: string;
 }

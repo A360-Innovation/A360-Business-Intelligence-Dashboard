@@ -47,7 +47,7 @@ const ChatPage: React.FC = () => {
         }
     }, [input]);
 
-    const handleSendMessage = useCallback(() => {
+    const handleSendMessage = useCallback(async () => {
         if (input.trim() === '' || isAiTyping) return;
 
         const newUserMessage: Message = {
@@ -56,43 +56,45 @@ const ChatPage: React.FC = () => {
             sender: 'user',
         };
         setMessages((prev) => [...prev, newUserMessage]);
+        const userQuestion = input;
         setInput('');
         setIsAiTyping(true);
 
-        // Simulate AI thinking and then streaming response
-        setTimeout(() => {
-            const fullResponse = "Thank you for your message. I am processing your request and will provide a detailed analysis shortly. Based on the data, the top 3 up-selling opportunities are: combining neurotoxin treatments with dermal fillers for comprehensive facial rejuvenation, suggesting skincare product regimens post-procedure to maintain results, and introducing body contouring services to patients interested in facial aesthetics.";
-            const words = fullResponse.split(' ');
-            
+        try {
+            const response = await fetch('https://rag-aesthetic-production.up.railway.app/coach?clinic=Lumiere%20Aesthetics&day_from=2025-06-13&day_to=2025-06-13', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question_hint: userQuestion,
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`API error: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+
             const newAiMessage: Message = {
                 id: Date.now() + 1,
-                text: "",
+                text: data.report || "Sorry, I received an empty response.",
                 sender: 'ai',
             };
-            
             setMessages((prev) => [...prev, newAiMessage]);
-            setIsAiTyping(false);
 
-            let wordIndex = 0;
-            const intervalId = setInterval(() => {
-                if (wordIndex < words.length) {
-                    setMessages(prev => {
-                        const lastMessage = prev[prev.length - 1];
-                        if (lastMessage && lastMessage.sender === 'ai') {
-                            const updatedMessage = {
-                                ...lastMessage,
-                                text: lastMessage.text + (wordIndex === 0 ? '' : ' ') + words[wordIndex],
-                            };
-                            return [...prev.slice(0, -1), updatedMessage];
-                        }
-                        return prev;
-                    });
-                    wordIndex++;
-                } else {
-                    clearInterval(intervalId);
-                }
-            }, 50);
-        }, 1500);
+        } catch (error) {
+            console.error("Failed to fetch AI response:", error);
+            const errorMessage: Message = {
+                id: Date.now() + 1,
+                text: "Sorry, I couldn't process your request right now. Please check the console for details or try again later.",
+                sender: 'ai',
+            };
+            setMessages((prev) => [...prev, errorMessage]);
+        } finally {
+            setIsAiTyping(false);
+        }
     }, [input, isAiTyping]);
     
     const handlePromptClick = useCallback((prompt: string) => {
