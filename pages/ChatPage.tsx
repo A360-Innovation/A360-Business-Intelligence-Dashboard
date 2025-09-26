@@ -55,40 +55,75 @@ const ChatPage: React.FC = () => {
             text: input,
             sender: 'user',
         };
-        setMessages((prev) => [...prev, newUserMessage]);
+
+        // Add user message and an empty AI placeholder
+        setMessages((prev) => [...prev, newUserMessage, { id: Date.now() + 1, text: '', sender: 'ai' }]);
         const userQuestion = input;
         setInput('');
         setIsAiTyping(true);
 
         try {
-            // Mocked AI response to prevent fetch errors in the current environment.
-            await new Promise(resolve => setTimeout(resolve, 1200));
+            const response = await fetch('https://chat-stream-production.up.railway.app/chat/stream', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    conversation_id: "demo-aesthetics360",
+                    message: userQuestion,
+                }),
+            });
 
-            let aiText = "This is a mocked response. In a real application, I would provide a detailed analysis based on your question about the clinic's data.";
-
-            if (userQuestion.toLowerCase().includes("concerns")) {
-                aiText = "Based on the data for the 25-35 age group, the primary concerns are:\n\n1.  **Skin Pigmentation (38%):** Many patients are looking for solutions for sunspots and melasma.\n2.  **Acne / Breakouts (22%):** Adult acne remains a significant concern.\n3.  **Early Wrinkles (18%):** Patients are increasingly interested in preventative anti-aging treatments like 'baby botox'.";
-            } else if (userQuestion.toLowerCase().includes("filler")) {
-                aiText = "Common objections to filler treatments include:\n\n-   **Fear of looking unnatural:** Patients often express worry about an 'overdone' look. The best response is to reassure them with a conservative approach, showing before-and-after photos of natural results, and suggesting a 'start small and add more later' plan.\n-   **Concerns about pain/discomfort:** Explain the use of topical numbing cream and the minimal discomfort involved.\n-   **Cost:** Break down the cost and explain the longevity of the results. Offering financing options can also be effective.";
-            } else if (userQuestion.toLowerCase().includes("marketing") || userQuestion.toLowerCase().includes("campaign")) {
-                aiText = "For a summer campaign targeting pigmentation, here is some sample copy:\n\n**Headline:** Reveal Your Radiance This Summer!\n\n**Body:** Don't let sunspots or melasma dim your glow. Our advanced IPL Photofacial and Chemical Peel treatments are designed to safely and effectively reduce unwanted pigmentation, leaving you with a clear, even complexion. Book a free consultation today and step into summer with confidence!";
+            if (!response.ok || !response.body) {
+                throw new Error(`API error: ${response.status} ${response.statusText}`);
             }
 
-            const newAiMessage: Message = {
-                id: Date.now() + 1,
-                text: aiText,
-                sender: 'ai',
-            };
-            setMessages((prev) => [...prev, newAiMessage]);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+            let currentEvent = '';
 
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || ''; // Keep the last, possibly incomplete line
+
+                for (const line of lines) {
+                    if (line.startsWith('event: ')) {
+                        currentEvent = line.substring(7).trim();
+                    } else if (line.startsWith('data: ')) {
+                        const dataContent = line.substring(6).trim();
+                        if (currentEvent === 'message' && dataContent !== '[END]') {
+                            setMessages((prev) => {
+                                const newMessages = [...prev];
+                                const lastMessage = newMessages[newMessages.length - 1];
+                                if (lastMessage && lastMessage.sender === 'ai') {
+                                    lastMessage.text += dataContent;
+                                }
+                                return newMessages;
+                            });
+                        } else if (currentEvent === 'end' || dataContent === '[END]') {
+                           // End of stream
+                           reader.cancel();
+                           break;
+                        }
+                    } else if (line === '') {
+                        // Reset event type after an empty line (end of event block)
+                        currentEvent = '';
+                    }
+                }
+            }
         } catch (error) {
             console.error("Failed to fetch AI response:", error);
-            const errorMessage: Message = {
-                id: Date.now() + 1,
-                text: "Sorry, I couldn't process your request right now. Please check the console for details or try again later.",
-                sender: 'ai',
-            };
-            setMessages((prev) => [...prev, errorMessage]);
+            setMessages(prev => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage && lastMessage.sender === 'ai' && lastMessage.text === '') {
+                     lastMessage.text = "Sorry, I couldn't process your request right now. Please try again later.";
+                }
+                return newMessages;
+            });
         } finally {
             setIsAiTyping(false);
         }
@@ -137,38 +172,39 @@ const ChatPage: React.FC = () => {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {messages.map((message) => (
-                            <div key={message.id} className={cn("flex items-start gap-3 w-full max-w-3xl mx-auto", message.sender === 'user' && 'justify-end')}>
-                                {message.sender === 'ai' && (
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                                        <Bot className="w-4 h-4 text-primary" />
+                        {messages.map((message, index) => {
+                            const isStreaming = isAiTyping && message.sender === 'ai' && index === messages.length - 1;
+                            return (
+                                <div key={message.id} className={cn("flex items-start gap-3 w-full max-w-3xl mx-auto", message.sender === 'user' && 'justify-end')}>
+                                    {message.sender === 'ai' && (
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                                            <Bot className="w-4 h-4 text-primary" />
+                                        </div>
+                                    )}
+                                    <div className={cn(
+                                        "max-w-md md:max-w-lg rounded-xl p-3 text-sm whitespace-pre-wrap", 
+                                        message.sender === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border rounded-bl-none'
+                                    )}>
+                                        <p>
+                                            {message.text}
+                                            {isStreaming && message.text.length === 0 && (
+                                                <div className="flex items-center space-x-1.5">
+                                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></span>
+                                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.2s]"></span>
+                                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.4s]"></span>
+                                                </div>
+                                            )}
+                                            {isStreaming && message.text.length > 0 && <span className="inline-block w-0.5 h-4 bg-foreground animate-pulse ml-1 translate-y-0.5"></span>}
+                                        </p>
                                     </div>
-                                )}
-                                <div className={cn(
-                                    "max-w-md md:max-w-lg rounded-xl p-3 text-sm whitespace-pre-wrap", 
-                                    message.sender === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border rounded-bl-none'
-                                )}>
-                                    <p>{message.text}</p>
+                                    {message.sender === 'user' && (
+                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <User className="w-4 h-4 text-primary" />
+                                        </div>
+                                    )}
                                 </div>
-                                {message.sender === 'user' && (
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <User className="w-4 h-4 text-primary" />
-                                    </div>
-                                )}
-                            </div>
-                        ))}
-                        {isAiTyping && (
-                            <div className="flex items-start gap-3 w-full max-w-3xl mx-auto">
-                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                                    <Bot className="w-4 h-4 text-primary" />
-                                </div>
-                                <div className="max-w-md rounded-xl p-3 bg-card border border-border rounded-bl-none flex items-center space-x-1.5">
-                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></span>
-                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.2s]"></span>
-                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.4s]"></span>
-                                </div>
-                            </div>
-                        )}
+                            );
+                        })}
                     </div>
                 )}
             </div>

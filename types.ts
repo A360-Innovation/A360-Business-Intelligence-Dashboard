@@ -1,5 +1,5 @@
 
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market';
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -202,4 +202,15 @@ export interface MarketIntelData {
     socialTrends: SocialTrend[];
     shareOfVoice: ShareOfVoice[];
     topSearchTerms: string[];
+}
+
+// Types for Opportunities Hub
+export interface Opportunity {
+    transcript_id: string;
+    day: string;
+    turn_index: number;
+    type: string;
+    confidence: number | null;
+    snippet: string;
+    rationale: string | null;
 }

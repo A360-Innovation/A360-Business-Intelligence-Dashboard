@@ -22,7 +22,7 @@ export const useDashboardData = () => {
                     trendsRes,
                     experienceRes
                 ] = await Promise.all([
-                    fetch(`${API_BASE}/summary?month=2025-06`),
+                    fetch(`${API_BASE}/summary?months=4`),
                     fetch(`${API_BASE}/concerns?months=4`),
                     fetch(`${API_BASE}/top_procedures?months=4`),
                     fetch(`${API_BASE}/treatment_trends?months=4`),
