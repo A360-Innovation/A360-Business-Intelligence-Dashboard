@@ -2,7 +2,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe } from 'lucide-react';
 
 interface SidebarProps {
   currentPage: Page;
@@ -13,6 +13,12 @@ const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
   { id: 'podcasts', label: 'Podcasts', icon: Mic },
+  { id: 'practice', label: 'Practice Mode', icon: GraduationCap },
+  { id: 'treatments', label: 'Treatments', icon: Beaker },
+  { id: 'journey', label: 'Patient Journey', icon: Route },
+  { id: 'performance', label: 'Performance', icon: Users },
+  { id: 'forecasting', label: 'Forecasting', icon: TrendingUp },
+  { id: 'market', label: 'Market Intel', icon: Globe },
 ];
 
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
@@ -25,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage }) => {
       </div>
       <nav className="flex-1 p-2 space-y-1">
         {navItems.map((item) => {
-          const isClickable = item.id === 'dashboard' || item.id === 'chat' || item.id === 'podcasts';
+          const isClickable = true; // All items are clickable now
           const isActive = currentPage === item.id;
           return (
             <a

@@ -5,6 +5,12 @@ import Sidebar from './components/layout/Sidebar';
 import DashboardPage from './pages/DashboardPage';
 import ChatPage from './pages/ChatPage';
 import PodcastsPage from './pages/PodcastsPage';
+import PracticePage from './pages/PracticePage';
+import TreatmentAnalysisPage from './pages/TreatmentAnalysisPage';
+import PatientJourneyPage from './pages/PatientJourneyPage';
+import PerformancePage from './pages/PerformancePage';
+import ForecastingPage from './pages/ForecastingPage';
+import MarketIntelPage from './pages/MarketIntelPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import { cn } from './lib/utils';
@@ -17,6 +23,12 @@ const AppContent: React.FC = () => {
     dashboard: 'Dashboard',
     chat: 'A360 Chat',
     podcasts: 'Weekly Podcasts',
+    practice: 'Consultation Simulator',
+    treatments: 'Treatment Analysis',
+    journey: 'Patient Journey',
+    performance: 'Practitioner Performance',
+    forecasting: 'Forecasting & Trends',
+    market: 'Market Intelligence',
   };
 
   return (
@@ -32,6 +44,12 @@ const AppContent: React.FC = () => {
           {currentPage === 'dashboard' && <DashboardPage />}
           {currentPage === 'chat' && <ChatPage />}
           {currentPage === 'podcasts' && <PodcastsPage />}
+          {currentPage === 'practice' && <PracticePage />}
+          {currentPage === 'treatments' && <TreatmentAnalysisPage />}
+          {currentPage === 'journey' && <PatientJourneyPage />}
+          {currentPage === 'performance' && <PerformancePage />}
+          {currentPage === 'forecasting' && <ForecastingPage />}
+          {currentPage === 'market' && <MarketIntelPage />}
         </main>
         {currentPodcast && <Player />}
       </div>
