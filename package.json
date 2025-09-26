@@ -15,7 +15,9 @@
     "clsx": "^2.1.1",
     "tailwind-merge": "^2.4.0",
     "class-variance-authority": "^0.7.0",
-    "lucide-react": "^0.412.0"
+    "lucide-react": "^0.412.0",
+    "react-markdown": "9.0.1",
+    "remark-gfm": "4.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

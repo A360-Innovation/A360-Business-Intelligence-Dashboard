@@ -1,13 +1,26 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Bot, User, ArrowUp, Paperclip, ChevronRight } from 'lucide-react';
+import { Bot, User, ArrowUp, Paperclip, ChevronRight, Link, Copy } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+interface Chunk {
+    id: number;
+    transcript_id: string;
+    chunk_index: number;
+    vscore: number;
+    tscore: number;
+    hybrid: number;
+    preview: string;
+}
 
 interface Message {
   id: number;
   text: string;
   sender: 'user' | 'ai';
+  sources?: Chunk[];
 }
 
 const exampleQueries = [
@@ -21,6 +34,7 @@ const ChatPage: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState('');
     const [isAiTyping, setIsAiTyping] = useState(false);
+    const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
     const scrollRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -46,84 +60,70 @@ const ChatPage: React.FC = () => {
             }
         }
     }, [input]);
+    
+    const toggleSources = (messageId: number) => {
+        setExpandedSources(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(messageId)) {
+                newSet.delete(messageId);
+            } else {
+                newSet.add(messageId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleCopy = (text: string) => {
+        navigator.clipboard.writeText(text);
+        // In a real app, you might add a toast notification here
+    };
 
     const handleSendMessage = useCallback(async () => {
         if (input.trim() === '' || isAiTyping) return;
 
-        const newUserMessage: Message = {
-            id: Date.now(),
-            text: input,
-            sender: 'user',
-        };
-
-        // Add user message and an empty AI placeholder
-        setMessages((prev) => [...prev, newUserMessage, { id: Date.now() + 1, text: '', sender: 'ai' }]);
+        const newUserMessage: Message = { id: Date.now(), text: input, sender: 'user' };
+        setMessages((prev) => [...prev, newUserMessage]);
         const userQuestion = input;
         setInput('');
         setIsAiTyping(true);
 
         try {
-            const response = await fetch('https://chat-stream-production.up.railway.app/chat/stream', {
+            const response = await fetch('https://chat-stream-production.up.railway.app/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    conversation_id: "demo-aesthetics360",
+                    conversation_id: "demo-125",
                     message: userQuestion,
+                    clinic: "Lumiere Aesthetics"
                 }),
             });
 
-            if (!response.ok || !response.body) {
-                throw new Error(`API error: ${response.status} ${response.statusText}`);
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let currentEvent = '';
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || ''; // Keep the last, possibly incomplete line
-
-                for (const line of lines) {
-                    if (line.startsWith('event: ')) {
-                        currentEvent = line.substring(7).trim();
-                    } else if (line.startsWith('data: ')) {
-                        const dataContent = line.substring(6).trim();
-                        if (currentEvent === 'message' && dataContent !== '[END]') {
-                            setMessages((prev) => {
-                                const newMessages = [...prev];
-                                const lastMessage = newMessages[newMessages.length - 1];
-                                if (lastMessage && lastMessage.sender === 'ai') {
-                                    lastMessage.text += dataContent;
-                                }
-                                return newMessages;
-                            });
-                        } else if (currentEvent === 'end' || dataContent === '[END]') {
-                           // End of stream
-                           reader.cancel();
-                           break;
-                        }
-                    } else if (line === '') {
-                        // Reset event type after an empty line (end of event block)
-                        currentEvent = '';
-                    }
+            if (!response.ok) {
+                let errorMessage = `API error: ${response.status} ${response.statusText}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorMessage;
+                } catch (e) {
+                    // Ignore if can't parse json body from failed request
                 }
+                throw new Error(errorMessage);
             }
+
+            const data = await response.json();
+            
+            const newAiMessage: Message = {
+                id: Date.now() + 1,
+                text: data.answer,
+                sender: 'ai',
+                sources: data.used_chunks,
+            };
+            setMessages((prev) => [...prev, newAiMessage]);
+
         } catch (error) {
             console.error("Failed to fetch AI response:", error);
-            setMessages(prev => {
-                const newMessages = [...prev];
-                const lastMessage = newMessages[newMessages.length - 1];
-                if (lastMessage && lastMessage.sender === 'ai' && lastMessage.text === '') {
-                     lastMessage.text = "Sorry, I couldn't process your request right now. Please try again later.";
-                }
-                return newMessages;
-            });
+            const errorMessageText = error instanceof Error ? error.message : "Sorry, I couldn't process your request right now. Please try again later.";
+            const errorAiMessage: Message = { id: Date.now() + 1, text: errorMessageText, sender: 'ai' };
+            setMessages((prev) => [...prev, errorAiMessage]);
         } finally {
             setIsAiTyping(false);
         }
@@ -172,39 +172,80 @@ const ChatPage: React.FC = () => {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        {messages.map((message, index) => {
-                            const isStreaming = isAiTyping && message.sender === 'ai' && index === messages.length - 1;
-                            return (
-                                <div key={message.id} className={cn("flex items-start gap-3 w-full max-w-3xl mx-auto", message.sender === 'user' && 'justify-end')}>
-                                    {message.sender === 'ai' && (
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                                            <Bot className="w-4 h-4 text-primary" />
-                                        </div>
-                                    )}
-                                    <div className={cn(
-                                        "max-w-md md:max-w-lg rounded-xl p-3 text-sm whitespace-pre-wrap", 
-                                        message.sender === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border rounded-bl-none'
-                                    )}>
-                                        <p>
-                                            {message.text}
-                                            {isStreaming && message.text.length === 0 && (
-                                                <div className="flex items-center space-x-1.5">
-                                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></span>
-                                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.2s]"></span>
-                                                    <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.4s]"></span>
-                                                </div>
-                                            )}
-                                            {isStreaming && message.text.length > 0 && <span className="inline-block w-0.5 h-4 bg-foreground animate-pulse ml-1 translate-y-0.5"></span>}
-                                        </p>
+                        {messages.map((message) => (
+                            <div key={message.id} className={cn("flex items-start gap-3 w-full max-w-3xl mx-auto", message.sender === 'user' && 'justify-end')}>
+                                {message.sender === 'ai' && (
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                                        <Bot className="w-4 h-4 text-primary" />
                                     </div>
-                                    {message.sender === 'user' && (
-                                        <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                            <User className="w-4 h-4 text-primary" />
+                                )}
+                                <div className={cn(
+                                    "group relative max-w-md md:max-w-lg rounded-xl text-sm", 
+                                    message.sender === 'user' ? 'bg-primary text-primary-foreground rounded-br-none' : 'bg-card border border-border rounded-bl-none'
+                                )}>
+                                    <div className={cn(
+                                        "prose prose-sm max-w-none [&_p]:my-0 p-3",
+                                        message.sender === 'user' && 'prose-invert'
+                                    )}>
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.text || ' '}</ReactMarkdown>
+                                    </div>
+                                    {message.sender === 'ai' && (
+                                         <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="absolute top-1 right-1 h-7 w-7 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={() => handleCopy(message.text)}
+                                            title="Copy message"
+                                         >
+                                            <Copy className="h-3.5 w-3.5" />
+                                         </Button>
+                                    )}
+                                     {message.sender === 'ai' && message.sources && message.sources.length > 0 && (
+                                        <div className="p-3 border-t border-border bg-secondary/30">
+                                            <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center">
+                                                <Link className="h-3 w-3 mr-1.5" /> Sources
+                                            </h4>
+                                            <div className="space-y-2">
+                                                {(expandedSources.has(message.id) ? message.sources : message.sources.slice(0, 3)).map((source) => (
+                                                    <div key={source.id} className="bg-background p-2 rounded-md text-xs text-muted-foreground border border-border/50" title={source.preview}>
+                                                        <p className="font-mono text-primary/80 text-[10px] truncate">
+                                                            Transcript: {source.transcript_id}
+                                                        </p>
+                                                        <p className="mt-1 text-foreground/80">
+                                                            "{source.preview.trim()}"
+                                                        </p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            {message.sources.length > 3 && (
+                                                <Button variant="link" size="sm" className="h-auto p-0 mt-2 text-xs font-semibold" onClick={() => toggleSources(message.id)}>
+                                                    {expandedSources.has(message.id) ? 'Show less' : `Show ${message.sources.length - 3} more sources...`}
+                                                </Button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
-                            );
-                        })}
+                                {message.sender === 'user' && (
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                                        <User className="w-4 h-4 text-primary" />
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                        {isAiTyping && (
+                            <div className="flex items-start gap-3 w-full max-w-3xl mx-auto">
+                                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
+                                    <Bot className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="max-w-md md:max-w-lg rounded-xl p-3 text-sm bg-card border border-border rounded-bl-none">
+                                    <div className="flex items-center space-x-1.5">
+                                        <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></span>
+                                        <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.2s]"></span>
+                                        <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.4s]"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

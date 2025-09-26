@@ -44,15 +44,15 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demographicsData, seasonalData, onItemClick }) => {
-  // Fix: Replaced `flatMap` with `reduce` to ensure proper type inference for older TypeScript configurations.
   // This creates a flat, unique list of all concern names from the nested `concerns` arrays.
-  // Fix: Corrected issue with TSX parsing of generic on `reduce`. Typed the initial value instead.
-  // Fix: Explicitly type the accumulator `acc` as `string[]` to ensure the reduce method correctly infers its return type.
+  // Fix: Explicitly typing the initial value of reduce to `string[]` ensures
+  // correct type inference for the Set and the resulting array, resolving a
+  // type mismatch where the result was inferred as `unknown[]`.
   const allConcerns: string[] = [
     ...new Set(
-      demographicsData.reduce((acc: string[], group) => {
+      demographicsData.reduce((acc, group) => {
         return acc.concat(group.concerns.map(concern => concern.name));
-      }, [])
+      }, [] as string[])
     ),
   ];
     

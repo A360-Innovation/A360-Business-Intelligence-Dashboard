@@ -55,22 +55,4 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
     );
 };
 
-// A simple Badge component if it's not already in the project
-// For this app, let's define it here to avoid creating a new file.
-namespace Badge {
-    export interface Props extends React.HTMLAttributes<HTMLDivElement> {}
-}
-
-const Badge: React.FC<Badge.Props> = ({ className, ...props }) => {
-    return (
-        <div
-            className={cn(
-                'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                className
-            )}
-            {...props}
-        />
-    );
-};
-
 export default OpportunityCard;
