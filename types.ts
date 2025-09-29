@@ -1,5 +1,5 @@
 
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities';
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -213,4 +213,14 @@ export interface Opportunity {
     confidence: number | null;
     snippet: string;
     rationale: string | null;
+}
+
+// Types for Prompt Library
+export interface Prompt {
+    id: string;
+    category: string;
+    title: string;
+    description: string;
+    prompt: string;
+    placeholders?: string[];
 }

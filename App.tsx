@@ -12,6 +12,7 @@ import PerformancePage from './pages/PerformancePage';
 import ForecastingPage from './pages/ForecastingPage';
 import MarketIntelPage from './pages/MarketIntelPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
+import PromptsPage from './pages/PromptsPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import { cn } from './lib/utils';
@@ -31,6 +32,7 @@ const AppContent: React.FC = () => {
     forecasting: 'Forecasting & Trends',
     market: 'Market Intelligence',
     opportunities: 'Opportunities Hub',
+    prompts: 'Prompt Library',
   };
 
   return (
@@ -53,6 +55,7 @@ const AppContent: React.FC = () => {
           {currentPage === 'forecasting' && <ForecastingPage />}
           {currentPage === 'market' && <MarketIntelPage />}
           {currentPage === 'opportunities' && <OpportunitiesPage />}
+          {currentPage === 'prompts' && <PromptsPage />}
         </main>
         {currentPodcast && <Player />}
       </div>

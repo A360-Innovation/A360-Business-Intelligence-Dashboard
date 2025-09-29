@@ -2,7 +2,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe, Target } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe, Target, BookText } from 'lucide-react';
 
 interface SidebarProps {
   currentPage: Page;
@@ -13,6 +13,7 @@ const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'opportunities', label: 'Opportunities', icon: Target },
   { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
+  { id: 'prompts', label: 'Prompt Library', icon: BookText },
   { id: 'podcasts', label: 'Podcasts', icon: Mic },
   { id: 'practice', label: 'Practice Mode', icon: GraduationCap },
   { id: 'treatments', label: 'Treatments', icon: Beaker },
