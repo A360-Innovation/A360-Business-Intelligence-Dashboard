@@ -18,11 +18,19 @@ const NarrativePane: React.FC<NarrativePaneProps> = ({ isOpen, title, content, o
     if (c === 'loading') {
       return c;
     }
-    // 1. Trim leading whitespace from lines starting with '#' to ensure they are parsed as headings.
-    let processed = c.replace(/^\s+(#+.*)/gm, '$1');
-    // 2. Add a space after hashes if it's missing (e.g., '##Heading' -> '## Heading').
-    processed = processed.replace(/^(#+)(\S)/gm, '$1 $2');
-    return processed;
+    // Process each line to fix common markdown heading issues.
+    return c.split('\n').map(line => {
+        // Trim whitespace from the start of the line.
+        const trimmedLine = line.trimStart();
+        // Match lines that start with one or more '#' characters.
+        const match = trimmedLine.match(/^(#+)(.*)/);
+        if (match) {
+            const hashes = match[1]; // The '#' characters
+            const content = match[2].trim(); // The heading text
+            return `${hashes} ${content}`; // Reconstruct with a single space
+        }
+        return line; // Return original line if it's not a heading
+    }).join('\n');
   };
 
   const formattedContent = formatContent(content);
@@ -51,17 +59,17 @@ const NarrativePane: React.FC<NarrativePaneProps> = ({ isOpen, title, content, o
             </Button>
           </div>
           <div className="mt-4 flex-grow overflow-y-auto prose prose-sm max-w-none text-muted-foreground
-            prose-p:leading-loose prose-p:my-5
-            prose-ul:my-5 prose-ul:list-disc prose-ul:pl-5 prose-ul:space-y-3
-            prose-ol:my-5 prose-ol:list-decimal prose-ol:pl-5 prose-ol:space-y-3
+            prose-p:leading-loose prose-p:my-6
+            prose-ul:my-6 prose-ul:list-disc prose-ul:pl-5 prose-ul:space-y-4
+            prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-5 prose-ol:space-y-4
             prose-li:marker:text-primary
             prose-headings:font-semibold prose-headings:text-foreground
-            prose-h1:text-xl prose-h1:font-bold prose-h1:mt-8 prose-h1:mb-4 prose-h1:pb-2 prose-h1:border-b prose-h1:border-border prose-h1:first:mt-0
-            prose-h2:text-lg prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-4 prose-h2:first:mt-0
-            prose-h3:text-base prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-3
+            prose-h1:text-xl prose-h1:font-bold prose-h1:mt-8 prose-h1:mb-6 prose-h1:pb-2 prose-h1:border-b prose-h1:border-border prose-h1:first:mt-0
+            prose-h2:text-lg prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-6 prose-h2:first:mt-0
+            prose-h3:text-base prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-4
             prose-strong:font-bold prose-strong:text-foreground
             prose-a:text-primary hover:prose-a:text-primary/80
-            prose-blockquote:mt-6 prose-blockquote:border-l-4 prose-blockquote:border-primary/20 prose-blockquote:pl-4 prose-blockquote:italic
+            prose-blockquote:mt-6 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:bg-secondary/50 prose-blockquote:text-foreground/90
             prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-sm">
             {content === 'loading' ? (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
