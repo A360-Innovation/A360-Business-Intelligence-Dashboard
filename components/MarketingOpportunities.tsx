@@ -44,17 +44,14 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demographicsData, seasonalData, onItemClick }) => {
-  // This creates a flat, unique list of all concern names from the nested `concerns` arrays.
-  // Fix: Explicitly typing the initial value of reduce to `string[]` ensures
-  // correct type inference for the Set and the resulting array, resolving a
-  // type mismatch where the result was inferred as `unknown[]`.
-  const allConcerns: string[] = [
-    ...new Set(
-      demographicsData.reduce((acc, group) => {
-        return acc.concat(group.concerns.map(concern => concern.name));
-      }, [] as string[])
-    ),
-  ];
+  // FIX: Replaced `flatMap` with a more explicit `reduce` to ensure proper type
+  // inference, resolving an issue where `allConcerns` was not correctly typed as `string[]`.
+  const allConcerns: string[] = Array.from(
+    demographicsData.reduce((set, group) => {
+      group.concerns.forEach(c => set.add(c.name));
+      return set;
+    }, new Set<string>())
+  );
     
   const chartData = demographicsData.map(group => {
       const groupData: { [key: string]: any } = { group: group.group };
