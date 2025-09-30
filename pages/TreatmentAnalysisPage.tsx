@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
@@ -36,7 +37,7 @@ const TreatmentAnalysisPage: React.FC = () => {
     const analysisData = selectedTreatment ? treatmentAnalysisData[selectedTreatment.name] : null;
 
     return (
-        <div className="flex h-full">
+        <div className="flex flex-col lg:flex-row h-full">
             <TreatmentSelector
                 treatments={dashboardData.topProcedures}
                 selectedTreatment={selectedTreatment}

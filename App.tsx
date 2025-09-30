@@ -18,10 +18,12 @@ import SettingsPage from './pages/SettingsPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import { cn } from './lib/utils';
+import { Menu } from 'lucide-react';
 
 const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { currentPodcast } = useContext(PlayerContext);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const pageTitles: { [key in Page]: string } = {
     dashboard: 'Dashboard',
@@ -40,10 +42,22 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-background text-foreground text-sm">
-      <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} />
+      <Sidebar 
+        currentPage={currentPage} 
+        setCurrentPage={setCurrentPage}
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+      />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex items-center justify-between py-4 px-6 border-b border-border bg-card flex-shrink-0">
           <div className="flex items-center">
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              className="lg:hidden mr-4 p-2 -ml-2 rounded-md text-muted-foreground hover:bg-secondary"
+              aria-label="Open sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
             <h1 className="text-lg font-semibold text-foreground">{pageTitles[currentPage]}</h1>
           </div>
         </header>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PractitionerProfile } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -79,8 +78,7 @@ const PractitionerDetail: React.FC<PractitionerDetailProps> = ({ practitioner })
                                 <PolarGrid stroke="hsl(var(--border))"/>
                                 <PolarAngleAxis dataKey="skill" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <Radar name={practitioner.name} dataKey="score" stroke="hsl(var(--primary))" fill="hsl(var(--primary))" fillOpacity={0.6} />
-                                <Legend wrapperStyle={{ fontSize: '14px', paddingTop: '10px' }}/>
+                                <Radar name={practitioner.name} dataKey="score" stroke="hsl(var(--primary))" strokeWidth={2} fill="hsl(var(--primary))" fillOpacity={0.4} />
                             </RadarChart>
                        </ResponsiveContainer>
                    </div>

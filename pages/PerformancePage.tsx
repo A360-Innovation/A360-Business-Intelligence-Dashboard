@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { PractitionerProfile } from '../types';
 import { performanceData } from '../data/performanceData';
@@ -10,7 +11,7 @@ const PerformancePage: React.FC = () => {
     const [selectedPractitioner, setSelectedPractitioner] = useState<PractitionerProfile | null>(practitioners[0] || null);
     
     return (
-        <div className="flex h-full">
+        <div className="flex flex-col lg:flex-row h-full">
             <PractitionerLeaderboard 
                 practitioners={practitioners}
                 setPractitioners={setPractitioners}

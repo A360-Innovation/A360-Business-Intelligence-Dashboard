@@ -8,7 +8,41 @@ interface TreatmentTrendsChartProps {
   onBarClick: (payload: any) => void;
 }
 
-const barColors = ['#547BA3', '#7795B9', '#9AB3D0', '#BDD1E6', '#E0EEFA'];
+const gradientColors = [
+  'hsl(var(--primary))', 
+  'hsl(212, 56%, 70%)', 
+  'hsl(212, 56%, 80%)', 
+  'hsl(212, 56%, 90%)', 
+  'hsl(212, 56%, 95%)'
+];
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card p-3 border border-border rounded-lg shadow-sm">
+          <p className="font-bold text-card-foreground mb-2">{label}</p>
+          {payload.map((pld: any) => (
+            <p key={pld.dataKey} style={{ color: pld.fill }} className="text-sm font-semibold">
+              {`${pld.name}: ${pld.value}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+// Custom shape for rounded bar tops
+const RoundedBar = (props: any) => {
+  const { fill, x, y, width, height } = props;
+  const radius = 6;
+  return (
+    <g>
+      <path d={`M${x},${y + radius} A${radius},${radius},0,0,1,${x + radius},${y} L${x + width - radius},${y} A${radius},${radius},0,0,1,${x + width},${y + radius} L${x + width},${y + height} L${x},${y + height} Z`} fill={fill} />
+    </g>
+  );
+};
+
 
 const TreatmentTrendsChart: React.FC<TreatmentTrendsChartProps> = ({ data, onBarClick }) => {
   const treatments = data.length > 0 ? Object.keys(data[0]).filter(key => key !== 'month') : [];
@@ -18,10 +52,18 @@ const TreatmentTrendsChart: React.FC<TreatmentTrendsChartProps> = ({ data, onBar
       <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#F2F4F7" />
-            <XAxis dataKey="month" tick={{ fill: '#667085', fontSize: 12 }} />
-            <YAxis tick={{ fill: '#667085', fontSize: 12 }} />
-            <RechartsTooltip />
+            <defs>
+              {gradientColors.map((color, index) => (
+                <linearGradient key={index} id={`grad${index}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={0.8} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0.2} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--secondary))' }} />
             <Legend
               iconType="circle"
               wrapperStyle={{
@@ -31,7 +73,14 @@ const TreatmentTrendsChart: React.FC<TreatmentTrendsChartProps> = ({ data, onBar
               }}
             />
             {treatments.map((treatment, index) => (
-              <Bar key={treatment} dataKey={treatment} fill={barColors[index % barColors.length]} onClick={onBarClick} className="cursor-pointer" />
+              <Bar 
+                key={treatment} 
+                dataKey={treatment} 
+                fill={`url(#grad${index % gradientColors.length})`} 
+                onClick={onBarClick} 
+                className="cursor-pointer"
+                shape={<RoundedBar />}
+              />
             ))}
           </BarChart>
         </ResponsiveContainer>

@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { Procedure } from '../../types';
 import { cn } from '../../lib/utils';
@@ -18,7 +19,7 @@ const TreatmentSelector: React.FC<TreatmentSelectorProps> = ({ treatments, selec
     );
 
     return (
-        <aside className="w-80 flex-shrink-0 bg-card border-r border-border h-full flex flex-col">
+        <aside className="w-full lg:w-80 flex-shrink-0 bg-card border-b lg:border-b-0 lg:border-r border-border lg:h-full flex flex-col">
             <div className="p-4 border-b border-border">
                 <h2 className="font-bold text-foreground mb-3">Select a Treatment</h2>
                 <div className="relative">

@@ -1,49 +1,72 @@
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip as RechartsTooltip } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
 import { Concern } from '../types';
 import DashboardCard from './DashboardCard';
 import { Button } from './ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { cn } from '../lib/utils';
 
+const COLORS = ['hsl(var(--primary))', 'hsl(212, 56%, 70%)', 'hsl(212, 56%, 80%)', 'hsl(212, 56%, 90%)'];
+const DRILLDOWN_COLORS = ['hsl(212, 58%, 45%)', 'hsl(212, 58%, 55%)', 'hsl(212, 58%, 65%)', 'hsl(212, 58%, 75%)'];
+
+// This is the custom shape for the hovered slice, creating a "pop-out" effect.
+const renderActiveShape = (props: any) => {
+  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
+
+  return (
+    <g style={{ filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))' }}>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 8} // Make the active sector slightly larger
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        cornerRadius={5}
+      />
+    </g>
+  );
+};
+
+// Fix: Define the props interface for the component.
 interface ConcernsChartProps {
   data: Concern[];
   onSliceClick: (name: string) => void;
 }
 
-const COLORS = ['#547BA3', '#7795B9', '#9AB3D0', '#BDD1E6', '#E0EEFA'];
-const DRILLDOWN_COLORS = ['#416288', '#324D6A', '#23384C', '#15232D'];
-
-const CustomTooltip = ({ active, payload }: any) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-card p-2 border border-border rounded shadow-sm">
-        <p className="font-semibold text-card-foreground">{`${payload[0].name}: ${payload[0].value}%`}</p>
-      </div>
-    );
-  }
-  return null;
-};
-
 const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => {
   const [drilldownData, setDrilldownData] = useState<Concern[] | null>(null);
   const [drilldownTitle, setDrilldownTitle] = useState('');
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   const handlePieClick = (entry: any) => {
     onSliceClick(entry.name);
     if (entry.breakdown) {
       setDrilldownData(entry.breakdown);
       setDrilldownTitle(`Breakdown of ${entry.name}`);
+      setActiveIndex(null); // Reset hover on drilldown
     }
   };
 
   const handleBack = () => {
     setDrilldownData(null);
     setDrilldownTitle('');
+    setActiveIndex(null); // Reset hover on back
+  };
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+  
+  const onPieLeave = () => {
+    setActiveIndex(null);
   };
 
   const activeData = drilldownData || data;
-  const activeTitle = drilldownTitle || "Patient Concerns";
+  const activeTitle = drilldownTitle || "Top Patient Concerns";
   const activeColors = drilldownData ? DRILLDOWN_COLORS : COLORS;
+  const hoveredData = activeIndex !== null ? activeData[activeIndex] : null;
 
   return (
     <DashboardCard
@@ -56,41 +79,78 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
         </Button>
       )}
     >
-      <div style={{ width: '100%', height: 350 }}>
-        <ResponsiveContainer>
-          <PieChart>
-            <RechartsTooltip content={<CustomTooltip />} />
-            <Legend
-              iconType="circle"
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-              wrapperStyle={{
-                fontSize: '12px',
-                color: 'hsl(var(--muted-foreground))',
-                maxHeight: '300px',
-                overflowY: 'auto',
-                paddingLeft: '1rem',
-              }}
-            />
-            <Pie
-              data={activeData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={120}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-              onClick={(e) => handlePieClick(e)}
-              className="cursor-pointer"
+      <div className="w-full flex flex-col md:flex-row items-center -mt-4 md:h-[350px]">
+        {/* Chart Container */}
+        <div className="w-full md:w-1/2 h-[250px] md:h-full relative">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                activeIndex={activeIndex ?? undefined}
+                activeShape={renderActiveShape}
+                data={activeData}
+                cx="50%"
+                cy="50%"
+                innerRadius={70}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                paddingAngle={5}
+                onMouseEnter={onPieEnter}
+                onMouseLeave={onPieLeave}
+                onClick={(data) => handlePieClick(data)}
+                className="cursor-pointer"
+              >
+                {activeData.map((_entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={activeColors[index % activeColors.length]}
+                    stroke="hsl(var(--card))"
+                    strokeWidth={4}
+                  />
+                ))}
+              </Pie>
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none text-center transition-opacity duration-200">
+              {hoveredData ? (
+                  <>
+                      <span className="text-4xl font-bold text-foreground">{hoveredData.value}%</span>
+                      <span className="text-sm text-muted-foreground -mt-1 truncate max-w-[120px]">{hoveredData.name}</span>
+                  </>
+              ) : (
+                   <>
+                      <span className="text-sm text-muted-foreground">Top Concern</span>
+                      <span className="text-3xl font-bold text-foreground truncate max-w-[140px]">{activeData[0]?.name}</span>
+                   </>
+              )}
+          </div>
+        </div>
+        
+        {/* Custom Legend Container */}
+        <div className="w-full md:w-1/2 flex flex-col justify-center space-y-3 mt-4 md:mt-0 pt-4 md:pt-0 md:pl-6 border-t md:border-t-0 md:border-l border-border">
+          {activeData.map((entry, index) => (
+            <div
+              key={`legend-${index}`}
+              className={cn(
+                "flex items-center text-sm transition-all duration-200 cursor-pointer transform",
+                activeIndex !== null && activeIndex !== index ? "opacity-60" : "opacity-100 scale-105"
+              )}
+              onMouseEnter={() => onPieEnter(null, index)}
+              onMouseLeave={onPieLeave}
+              onClick={() => handlePieClick(entry)}
             >
-              {activeData.map((_entry, index) => (
-                <Cell key={`cell-${index}`} fill={activeColors[index % activeColors.length]} />
-              ))}
-            </Pie>
-          </PieChart>
-        </ResponsiveContainer>
+              <span
+                className="h-3 w-3 rounded-full mr-3 flex-shrink-0"
+                style={{ backgroundColor: activeColors[index % activeColors.length] }}
+              ></span>
+              <span className="text-muted-foreground flex-1 truncate pr-2">{entry.name}</span>
+              <span className="font-semibold text-foreground text-right">
+                {entry.value}%
+              </span>
+            </div>
+          ))}
+        </div>
       </div>
     </DashboardCard>
   );

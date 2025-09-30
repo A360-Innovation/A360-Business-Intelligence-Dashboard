@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Loader from './icons/Loader';
+import { cn } from '../lib/utils';
 
 interface NarrativePaneProps {
   isOpen: boolean;
@@ -62,41 +63,50 @@ const NarrativePane: React.FC<NarrativePaneProps> = ({ isOpen, title, content, o
   const formattedContent = formatContent(content);
 
   return (
-    <>
+    <div
+      className={cn(
+        "fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300",
+        isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+      )}
+      onClick={onClose}
+    >
       {/* Overlay */}
-      <div
-        className={`fixed inset-0 bg-foreground/60 backdrop-blur-sm z-40 transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        }`}
-        onClick={onClose}
-      ></div>
+      <div className="absolute inset-0 bg-foreground/60 backdrop-blur-sm"></div>
 
-      {/* Panel */}
+      {/* Modal Panel */}
       <div
-        className={`fixed top-0 right-0 h-full w-full max-w-md bg-card shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
-          isOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={cn(
+          "relative w-full max-w-4xl max-h-[90vh] bg-card rounded-xl shadow-xl transform transition-all duration-300 overflow-hidden",
+          isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
+        )}
+        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
         <div className="p-6 h-full flex flex-col">
-          <div className="flex justify-between items-center pb-4 border-b border-border">
+          <div className="flex justify-between items-center pb-4 border-b border-border flex-shrink-0">
             <h2 className="text-xl font-bold text-foreground">{title}</h2>
             <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="mt-4 flex-grow overflow-y-auto prose prose-sm max-w-none text-muted-foreground
-            prose-p:leading-loose prose-p:my-6
-            prose-ul:my-6 prose-ul:list-disc prose-ul:pl-5 prose-ul:space-y-4
-            prose-ol:my-6 prose-ol:list-decimal prose-ol:pl-5 prose-ol:space-y-4
-            prose-li:marker:text-primary
-            prose-headings:font-semibold prose-headings:text-foreground
-            prose-h1:text-xl prose-h1:font-bold prose-h1:mt-8 prose-h1:mb-6 prose-h1:pb-2 prose-h1:border-b prose-h1:border-border prose-h1:first:mt-0
-            prose-h2:text-lg prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-6 prose-h2:first:mt-0
-            prose-h3:text-base prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-4
-            prose-strong:font-bold prose-strong:text-foreground
-            prose-a:text-primary hover:prose-a:text-primary/80
-            prose-blockquote:mt-6 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:bg-secondary/50 prose-blockquote:text-foreground/90
-            prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-sm">
+          <div className="mt-4 flex-grow min-w-0 overflow-y-auto pb-5 prose max-w-none 
+            prose-p:leading-relaxed prose-p:my-4 prose-p:break-words
+            prose-ul:my-4 prose-ul:list-disc prose-ul:pl-5 prose-ul:space-y-2 
+            prose-ol:my-4 prose-ol:list-decimal prose-ol:pl-5 prose-ol:space-y-2 
+            prose-li:marker:text-primary prose-li:break-words
+            prose-headings:font-semibold prose-headings:text-foreground 
+            prose-h1:text-xl prose-h1:font-bold prose-h1:mt-6 prose-h1:mb-4 prose-h1:pb-2 prose-h1:border-b prose-h1:border-border prose-h1:first:mt-0 
+            prose-h2:text-lg prose-h2:font-bold prose-h2:mt-6 prose-h2:mb-4 prose-h2:first:mt-0 
+            prose-h3:text-base prose-h3:font-semibold prose-h3:mt-4 prose-h3:mb-2 
+            prose-strong:font-bold prose-strong:text-foreground 
+            prose-a:text-primary hover:prose-a:underline 
+            prose-blockquote:my-4 prose-blockquote:border-l-4 prose-blockquote:border-primary prose-blockquote:pl-4 prose-blockquote:bg-secondary/50 prose-blockquote:text-foreground/90 
+            prose-code:bg-secondary prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded-md prose-code:font-mono prose-code:text-sm
+            prose-table:w-full prose-table:my-4 prose-table:border-collapse 
+            prose-thead:border-b prose-thead:border-border 
+            prose-th:p-2 prose-th:text-left prose-th:font-semibold prose-th:text-foreground 
+            prose-tbody:divide-y prose-tbody:divide-border 
+            prose-tr:hover:bg-secondary/50 
+            prose-td:p-2">
             {content === 'loading' ? (
               <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
                 <Loader />
@@ -108,7 +118,7 @@ const NarrativePane: React.FC<NarrativePaneProps> = ({ isOpen, title, content, o
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

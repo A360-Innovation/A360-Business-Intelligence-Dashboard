@@ -1,386 +1,442 @@
-
-
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Bot, User, ArrowUp, Paperclip, ChevronRight, Link, Copy, HelpCircle } from 'lucide-react';
-import { Button } from '../components/ui/button';
+import React, { useState, useRef, useEffect } from 'react';
+import { Button, Textarea } from '../components/ui/FormControls';
+import * as Icons from '../components/ui/Icons';
+import { useTranslation } from '../hooks/useTranslation';
+import Logo from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import Tooltip from '../components/Tooltip';
 
-interface Chunk {
-    id: number;
-    transcript_id: string;
-    chunk_index: number;
-    vscore: number;
-    tscore: number;
-    hybrid: number;
-    preview: string;
+// --- Type Definitions ---
+interface ChatMessage {
+    id: string;
+    role: 'user' | 'model';
+    content: string;
 }
 
-interface Message {
-  id: number;
-  text: string;
-  sender: 'user' | 'ai';
-  sources?: Chunk[];
-}
+// --- Chat History Sidebar Component ---
+const ChatHistorySidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+    const { t } = useTranslation();
+    const historyItems = ["Botox Upsell Analysis", "Last Week's Satisfaction", "Objection Handling Scripts", "New Patient Funnel", "Marketing Campaign Ideas"];
 
-const exampleQueries = [
-    "Summarize key patient concerns for the 25-35 age group this month.",
-    "What are the top 3 up-selling opportunities based on recent consultations?",
-    "Identify common objections to filler treatments and suggest effective responses.",
-    "Generate marketing copy for a summer campaign targeting pigmentation issues.",
-];
+    return (
+        <div className={cn(
+            "flex flex-col bg-card border-r border-border",
+            "transition-all duration-300 ease-in-out flex-shrink-0",
+            isOpen ? 'w-[270px]' : 'w-0',
+            "overflow-hidden"
+        )}>
+            <div className="h-[70px] flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+                <div className="flex items-center gap-3">
+                    <Logo className="h-8 w-8" />
+                    <span className="font-bold text-foreground text-lg">Aesthetics360</span>
+                </div>
+                <button onClick={onClose} className="p-1 rounded-md hover:bg-secondary">
+                    <Icons.ChevronsLeftIcon className="h-5 w-5 text-muted-foreground" />
+                </button>
+            </div>
+            
+            <div className="p-4 space-y-4">
+                <div className="flex justify-around items-center p-1 bg-secondary rounded-lg">
+                    <button className="p-2 flex-1 rounded-lg hover:bg-background text-muted-foreground"><Icons.FilterIcon className="h-5 w-5 mx-auto"/></button>
+                    <button className="p-2 flex-1 rounded-lg hover:bg-background text-muted-foreground"><Icons.TargetIcon className="h-5 w-5 mx-auto"/></button>
+                    <button className="p-2 flex-1 rounded-lg hover:bg-background text-muted-foreground"><Icons.SettingsIcon className="h-5 w-5 mx-auto"/></button>
+                </div>
+                <Button variant="default" className="w-full !rounded-lg !py-2.5">
+                    <Icons.MessageCircleIcon className="h-5 w-5"/>
+                    <span>{t('aiCenter.newChat')}</span>
+                </Button>
+            </div>
+            
+            <nav className="flex-1 overflow-y-auto px-4">
+                <h3 className="px-2 pb-2 text-sm font-semibold text-muted-foreground">{t('aiCenter.workspace')}</h3>
+                <div className="space-y-1">
+                    {historyItems.map(item => (
+                        <a key={item} href="#" className="flex items-center gap-3 px-2 py-2 rounded-md text-sm font-medium text-muted-foreground hover:bg-secondary hover:text-foreground">
+                            <Icons.MessageCircleIcon className="h-5 w-5"/>
+                            <span>{item}</span>
+                        </a>
+                    ))}
+                </div>
+            </nav>
+        </div>
+    );
+};
 
-const ChatPage: React.FC = () => {
-    const [messages, setMessages] = useState<Message[]>([]);
+
+// --- Welcome Screen Component ---
+const WelcomeScreen: React.FC<{ onSendMessage: (prompt: string) => void; isLoading: boolean }> = ({ onSendMessage, isLoading }) => {
+    const { t } = useTranslation();
+    const prompts = [
+        t('aiCenter.prompt1'),
+        t('aiCenter.prompt2'),
+        t('aiCenter.prompt3'),
+        t('aiCenter.prompt4'),
+    ];
+
+    return (
+        <div className="w-full max-w-4xl mx-auto py-12 px-4">
+            <div className="text-left mb-12">
+                <h1 className="text-5xl font-bold tracking-tight text-foreground">{t('aiCenter.welcomeTitle')}</h1>
+                <p className="mt-2 text-5xl tracking-tight text-muted-foreground">{t('aiCenter.welcomeSubtitle')}</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {prompts.map((prompt, index) => (
+                    <button 
+                        key={index}
+                        onClick={() => onSendMessage(prompt)}
+                        disabled={isLoading}
+                        className="group text-left p-4 bg-card rounded-xl border border-border hover:border-primary/50 transition-all flex justify-between items-start disabled:opacity-50 h-full"
+                    >
+                        <p className="text-sm font-medium text-foreground">{prompt}</p>
+                        <Icons.ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 ml-4" />
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+// --- Chat View Components ---
+const formatContent = (text: string): string => {
+    if (!text) return '';
+    let formatted = text;
+
+    // 1. Initial cleanup of metadata and artifacts
+    const metadataMatch = formatted.match(/^\(?"?\{.*\}\)?"?\s*(Direct Answer)?\s*/i);
+    if (metadataMatch) {
+        formatted = formatted.substring(metadataMatch[0].length);
+    }
+    formatted = formatted.replace(/\s*"?\[t:[a-f0-9-]+\]"?\s*,?/gi, '');
+    
+    // 2. Add structural breaks to fix run-on text
+    // Break after punctuation followed by an uppercase letter (new sentence)
+    formatted = formatted.replace(/([.?!])([A-Z])/g, '$1\n\n$2');
+    // Break before a numbered list item
+    formatted = formatted.replace(/(\S)(\d+\.\s)/g, '$1\n\n$2');
+    // Break before a keyword that is likely a new section/list item
+    const keywordsForBreaks = [
+        'Headline', 'Body', 'Melasma', 'Sun Spots & Age Spots', 'Post-Inflammatory Hyperpigmentation', 
+        'Uneven Skin Tone', 'Advanced Laser Treatments', 'Medical-Grade Peels', 
+        'Targeted Topical Treatments', 'Diamond Glow® Facial', 'Why treat pigmentation now', 
+        'Prevent Further Damage', 'Achieve Your Best Summer Skin', 'Long-Term Results', 
+        'Special Offer', 'Frequency', 'Evidence', 'Impact', 'Why it matters', 'Micro-script solution',
+        'When to use', 'Relevance', 'Consultation trigger', 'Introduction script',
+        'Clinical justification', 'Frequency missed', 'Revenue impact', 'Success indicators',
+        'Ranked Concerns', 'Ranked Opportunities'
+    ];
+    const breakRegex = new RegExp(`(\\w)(${keywordsForBreaks.join('|')})`, 'g');
+    formatted = formatted.replace(breakRegex, '$1\n\n$2');
+
+
+    // 3. Apply Markdown formatting
+    // Bold keywords that end with a colon
+    const keywordsForBold = [...keywordsForBreaks, "Are you struggling with"];
+    const boldRegex = new RegExp(`^\\s*(${keywordsForBold.join('|')}):`, 'gm');
+    formatted = formatted.replace(boldRegex, '**$1:**');
+    
+    // Handle list-like keywords that should be bullet points
+    const bulletKeywords = [
+        "Frequency", "Evidence", "Impact", "Why it matters", "Micro-script solution",
+        "When to use", "Relevance", "Consultation trigger", "Introduction script",
+        "Clinical justification", "Frequency missed", "Revenue impact", "Success indicators"
+    ];
+    const bulletRegex = new RegExp(`^\\s*(${bulletKeywords.join('|')}):`, 'gm');
+    formatted = formatted.replace(bulletRegex, '- **$1:**');
+
+    // Make main headers larger
+    formatted = formatted.replace(/^(Summary of .*|Ranked Concerns|Ranked Opportunities|Headline)/gm, '### $1');
+    
+
+    // 4. Final cleanup
+    // Clean up multiple asterisks used as separators
+    formatted = formatted.replace(/\*{3,}/g, '\n\n');
+    // Remove any stray single asterisks that aren't part of a bold tag
+    formatted = formatted.replace(/(?<!\*)\*(?!\*)/g, '');
+    // Remove bad bolding like "**1."
+    formatted = formatted.replace(/^\s*\*\*(\d+\.\s)/gm, '$1');
+    // Normalize newlines to prevent excessive spacing
+    formatted = formatted.replace(/\n{3,}/g, '\n\n');
+
+    return formatted.trim();
+};
+
+const FormattedResponse: React.FC<{ content: string }> = ({ content }) => {
+    if (content === '') {
+        return (
+            <div className="typing-indicator">
+                <span></span><span></span><span></span>
+            </div>
+        );
+    }
+    
+    const formattedContent = formatContent(content);
+
+    return (
+        <div className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-strong:font-semibold">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{formattedContent}</ReactMarkdown>
+        </div>
+    );
+};
+
+const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
+    if (message.role === 'user') {
+        return (
+            <div className="flex justify-end">
+                <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl max-w-lg">
+                    <p className="text-base">{message.content}</p>
+                </div>
+            </div>
+        );
+    }
+    
+    return (
+         <div className="flex justify-start">
+            <div className="bg-card text-card-foreground px-4 py-3 rounded-2xl max-w-2xl border border-border">
+                <FormattedResponse content={message.content} />
+            </div>
+        </div>
+    );
+};
+
+const ChatView: React.FC<{ messages: ChatMessage[]; messagesEndRef: React.RefObject<HTMLDivElement> }> = ({ messages, messagesEndRef }) => {
+    return (
+        <div className="w-full max-w-3xl mx-auto pt-12 px-4 space-y-6">
+            {messages.map(msg => <MessageBubble key={msg.id} message={msg} />)}
+            <div ref={messagesEndRef} />
+        </div>
+    );
+};
+
+// --- Chat Footer Component ---
+const ChatFooter: React.FC<{ onSendMessage: (p: string) => void; isLoading: boolean; }> = ({ onSendMessage, isLoading }) => {
+    const { t } = useTranslation();
     const [input, setInput] = useState('');
-    const [isAiTyping, setIsAiTyping] = useState(false);
-    const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
-    const scrollRef = useRef<HTMLDivElement>(null);
+    const [isBannerVisible, setIsBannerVisible] = useState(true);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-    useEffect(() => {
-        if (scrollRef.current) {
-            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    const handleSend = () => {
+        if (input.trim() && !isLoading) {
+            onSendMessage(input.trim());
+            setInput('');
         }
-    }, [messages, isAiTyping]);
-    
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+        }
+    };
+
     useEffect(() => {
-        // Adjust textarea height dynamically
-        if (textareaRef.current) {
-            textareaRef.current.style.height = 'auto';
-            const scrollHeight = textareaRef.current.scrollHeight;
-            const maxHeight = 200; // Max height in pixels
-            
-            if (scrollHeight > maxHeight) {
-                textareaRef.current.style.height = `${maxHeight}px`;
-                textareaRef.current.style.overflowY = 'auto';
-            } else {
-                textareaRef.current.style.height = `${scrollHeight}px`;
-                textareaRef.current.style.overflowY = 'hidden';
-            }
+        const textarea = textareaRef.current;
+        if (textarea) {
+            textarea.style.height = 'auto';
+            const scrollHeight = textarea.scrollHeight;
+            const maxHeight = 160;
+            textarea.style.height = `${Math.min(scrollHeight, maxHeight)}px`;
+            textarea.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
         }
     }, [input]);
+
+    return (
+        <footer className="w-full max-w-3xl mx-auto p-4 z-10 flex-shrink-0">
+            <div className="space-y-3">
+                <div className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border shadow-lg flex flex-col transition-all duration-300">
+                    {isBannerVisible && (
+                        <div className="flex items-center justify-between p-3 bg-success/10 rounded-t-2xl border-b border-success/20">
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs font-semibold bg-success/20 text-success px-2 py-0.5 rounded-full">New</span>
+                                <p className="text-sm text-success">{t('aiCenter.newBannerText')}</p>
+                            </div>
+                            <button onClick={() => setIsBannerVisible(false)} className="p-1 rounded-full text-success/80 hover:bg-success/20">
+                                <Icons.XIcon className="h-4 w-4" />
+                            </button>
+                        </div>
+                    )}
+                    <div className="relative flex items-end p-2">
+                        <Textarea ref={textareaRef} value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder={t('aiCenter.placeholder')} rows={1} disabled={isLoading} className="w-full pl-3 pr-12 py-3 !bg-transparent !border-none resize-none focus:!ring-0 !text-base !shadow-none max-h-40" />
+                        <Button className="absolute right-3 bottom-3 !rounded-lg !p-2.5" size="sm" onClick={handleSend} disabled={isLoading || !input.trim()}>
+                           {isLoading ? <div className="w-5 h-5 border-2 border-primary-foreground/50 border-t-primary-foreground rounded-full animate-spin"></div> : <Icons.ArrowUpIcon className="h-5 w-5"/>}
+                        </Button>
+                    </div>
+                    <div className="flex justify-between items-center px-3 pb-2">
+                        <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" className="!p-2"><Icons.PaperClipIcon className="h-5 w-5" /></Button>
+                            <Button variant="ghost" size="sm" className="!p-2"><Icons.PhotographIcon className="h-5 w-5" /></Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Button variant="secondary" size="sm"><Icons.SquarePenIcon className="h-5 w-5" /> {t('aiCenter.promptLibrary')}</Button>
+                            <Button variant="secondary" size="sm"><Icons.SparklesIcon className="h-5 w-5" /> {t('aiCenter.improvePrompt')}</Button>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex items-center justify-center gap-2">
+                    {[t('aiCenter.starter1'), t('aiCenter.starter2'), t('aiCenter.starter3')].map(prompt => (
+                        <button key={prompt} onClick={() => onSendMessage(prompt)} disabled={isLoading} className="px-3 py-1.5 bg-secondary/50 backdrop-blur-sm border border-border rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed">{prompt}</button>
+                    ))}
+                </div>
+            </div>
+        </footer>
+    );
+};
+
+// --- Main Page Component ---
+const ChatPage: React.FC = () => {
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const abortControllerRef = useRef<AbortController | null>(null);
+    const isLoadingRef = useRef(false);
+
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, isLoading]);
+
+    async function* streamAsyncIterator(stream: ReadableStream<Uint8Array>) {
+        const reader = stream.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    if (buffer.length > 0) yield buffer;
+                    return;
+                }
+                buffer += decoder.decode(value, { stream: true });
+                let eolIndex;
+                while ((eolIndex = buffer.indexOf('\n')) >= 0) {
+                    const line = buffer.slice(0, eolIndex).trim();
+                    if (line) {
+                      yield line;
+                    }
+                    buffer = buffer.slice(eolIndex + 1);
+                }
+            }
+        } finally {
+            reader.releaseLock();
+        }
+    }
+
+    const handleSendMessage = async (prompt: string) => {
+        if (isLoadingRef.current) return;
     
-    const toggleSources = (messageId: number) => {
-        setExpandedSources(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(messageId)) {
-                newSet.delete(messageId);
-            } else {
-                newSet.add(messageId);
-            }
-            return newSet;
-        });
-    };
-
-    const handleCopy = (text: string) => {
-        navigator.clipboard.writeText(text);
-        // You could add a toast notification for feedback here.
-    };
-
-    const formatMessageContent = (content: string): string => {
-        let formattedText = content;
-
-        // General formatting for lists of opportunities, similar to NarrativePane
-        // Main Headers
-        formattedText = formattedText
-            .replace(/Opportunity Snapshot:/g, '## Opportunity Snapshot')
-            .replace(/Ranked Opportunities:/g, '### Ranked Opportunities');
-        
-        // Numbered list for each opportunity
-        formattedText = formattedText.replace(/(\d+)\. (Product\/Service:)/g, '\n\n$1. **$2**');
-        
-        // Key-value pairs within each opportunity
-        const labels = [
-            "Relevance", "Consultation trigger", "Introduction script",
-            "Clinical justification", "Frequency missed", "Revenue impact",
-            "Success indicators"
-        ];
-        
-        labels.forEach(label => {
-            const regex = new RegExp(`(\\*)?\\s*(${label}):`, 'gi');
-            formattedText = formattedText.replace(regex, '\n- **$2:**');
-        });
-
-        // Default formatting for other content (e.g., fixing headings without space)
-        formattedText = formattedText.split('\n').map(line => {
-            const trimmedLine = line.trimStart();
-            const match = trimmedLine.match(/^(#+)(.*)/);
-            if (match) {
-                const hashes = match[1];
-                const contentText = match[2].trim();
-                return `${hashes} ${contentText}`;
-            }
-            return line;
-        }).join('\n');
-
-        return formattedText;
-    };
-
-    const handleSendMessage = useCallback(async () => {
-        if (input.trim() === '' || isAiTyping) return;
-
-        const userQuestion = input;
-        const newUserMessage: Message = { id: Date.now(), text: userQuestion, sender: 'user' };
-        
-        const aiMessageId = Date.now() + 1;
-        const aiMessagePlaceholder: Message = { id: aiMessageId, text: '', sender: 'ai', sources: [] };
-        
-        setMessages((prev) => [...prev, newUserMessage, aiMessagePlaceholder]);
-        setInput('');
-        setIsAiTyping(true);
-
+        abortControllerRef.current = new AbortController();
+        const signal = abortControllerRef.current.signal;
+    
+        isLoadingRef.current = true;
+        setIsLoading(true);
+    
+        const userMessage: ChatMessage = { id: `user-${Date.now()}`, role: 'user', content: prompt };
+        const modelMessageId = `model-${Date.now()}`;
+        const newModelMessage: ChatMessage = { id: modelMessageId, role: 'model', content: '' };
+    
+        setMessages(prev => [...prev, userMessage, newModelMessage]);
+    
         try {
             const response = await fetch('https://chat-stream-production.up.railway.app/chat/stream', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    conversation_id: "demo-125",
-                    message: userQuestion,
+                    conversation_id: "demo-124", 
+                    message: prompt,
                 }),
+                signal,
             });
-
+    
             if (!response.ok || !response.body) {
-                let errorText = `API error: ${response.status} ${response.statusText}`;
-                 try {
-                    const errorData = await response.json();
-                    errorText = errorData.detail || errorText;
-                } catch (e) { /* ignore if no JSON body */ }
-                throw new Error(errorText);
+                throw new Error(`Server responded with status ${response.status}`);
             }
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let buffer = '';
-            let eventName = 'message';
+            let aiResponse = '';
+            let currentEvent = '';
 
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
+            for await (const line of streamAsyncIterator(response.body)) {
+                if (signal.aborted) break;
+                
+                if (line.startsWith('event:')) {
+                    currentEvent = line.substring(6).trim();
+                    if (currentEvent === 'end') {
+                        break;
+                    }
+                    continue;
+                }
 
-                buffer += decoder.decode(value, { stream: true });
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                for (const line of lines) {
-                    if (line.startsWith('event:')) {
-                        eventName = line.substring(6).trim();
-                    } else if (line.startsWith('data:')) {
+                if (line.startsWith('data:')) {
+                    if (currentEvent === 'message') {
                         const data = line.substring(5).trim();
-
-                        if (eventName === 'message') {
-                            setMessages(prev =>
-                                prev.map(msg =>
-                                    msg.id === aiMessageId ? { ...msg, text: msg.text + data } : msg
+                        if (data) {
+                            aiResponse += data;
+                            setMessages(prev => 
+                                prev.map(msg => 
+                                    msg.id === modelMessageId ? { ...msg, content: aiResponse } : msg
                                 )
                             );
-                        } else if (eventName === 'context') {
-                            try {
-                                const contextData = JSON.parse(data);
-                                if (Array.isArray(contextData)) {
-                                    setMessages(prev =>
-                                        prev.map(msg => {
-                                            if (msg.id === aiMessageId) {
-                                                const existingSources = msg.sources || [];
-                                                const newSources: Chunk[] = contextData.map((item: any, index: number) => ({
-                                                    id: existingSources.length + index,
-                                                    preview: String(item),
-                                                    transcript_id: `Source ${existingSources.length + index + 1}`,
-                                                    chunk_index: existingSources.length + index,
-                                                    vscore: 0, tscore: 0, hybrid: 0,
-                                                }));
-                                                return { ...msg, sources: existingSources.concat(newSources) };
-                                            }
-                                            return msg;
-                                        })
-                                    );
-                                }
-                            } catch (e) {
-                                console.error("Could not parse context from SSE:", data, e);
-                            }
-                        } else if (eventName === 'end' && data === '[END]') {
-                            setIsAiTyping(false);
-                            return;
                         }
-                    } else if (line.trim() === '') {
-                        eventName = 'message'; // Reset to default after an event is dispatched
                     }
+                    continue;
+                }
+                
+                if (line.trim() === '') {
+                    currentEvent = '';
                 }
             }
-        } catch (error) {
-            const errorMessageText = error instanceof Error ? error.message : "Sorry, something went wrong. Please try again.";
-            setMessages(prev =>
-                prev.map(msg =>
-                    msg.id === aiMessageId ? { ...msg, text: errorMessageText } : msg
-                )
-            );
-        } finally {
-            setIsAiTyping(false);
-        }
-    }, [input, isAiTyping]);
     
-    const handlePromptClick = useCallback((prompt: string) => {
-        setInput(prompt);
-        textareaRef.current?.focus();
-    }, []);
-
-    const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
+        } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+                console.log("Fetch aborted.");
+            } else {
+                console.error("Error fetching chat response:", error);
+                const errorMessageContent = error instanceof Error ? error.message : 'An unknown error occurred.';
+                const errorMessage: ChatMessage = {
+                    id: modelMessageId,
+                    role: 'model',
+                    content: `Sorry, I encountered an error: ${errorMessageContent}`,
+                };
+                setMessages(prev => prev.map(msg => msg.id === modelMessageId ? errorMessage : msg));
+            }
+        } finally {
+            isLoadingRef.current = false;
+            setIsLoading(false);
+            abortControllerRef.current = null;
         }
-    }, [handleSendMessage]);
-
-    const isSendDisabled = !input.trim() || isAiTyping;
-
-    const MessageEntry = ({ message }: { message: Message }) => (
-        <div className="w-full max-w-3xl mx-auto py-6 border-b border-border last:border-b-0">
-            <div className="flex items-center gap-3 mb-3">
-                {message.sender === 'user' ? (
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="w-4 h-4 text-primary" />
-                    </div>
-                ) : (
-                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                        <Bot className="w-4 h-4 text-primary" />
-                    </div>
-                )}
-                <span className="font-semibold text-foreground">
-                    {message.sender === 'user' ? 'You' : 'AI Assistant'}
-                </span>
-            </div>
-            
-            <div className="pl-11">
-                <div className="prose prose-sm max-w-none text-muted-foreground [&_p]:my-0">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.sender === 'ai' ? formatMessageContent(message.text) : (message.text || ' ')}
-                    </ReactMarkdown>
-                </div>
-
-                {message.sender === 'ai' && message.text && (
-                    <div className="mt-3">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 text-xs text-muted-foreground"
-                            onClick={() => handleCopy(message.text)}
-                            title="Copy message"
-                        >
-                            <Copy className="h-3.5 w-3.5 mr-1.5" />
-                            Copy
-                        </Button>
-                    </div>
-                )}
-
-                {message.sender === 'ai' && message.sources && message.sources.length > 0 && (
-                    <div className="mt-4">
-                        <h4 className="text-xs font-semibold text-muted-foreground mb-2 flex items-center">
-                            <Link className="h-3 w-3 mr-1.5" /> Sources
-                        </h4>
-                        <div className="space-y-2">
-                            {(expandedSources.has(message.id) ? message.sources : message.sources.slice(0, 3)).map((source) => (
-                                <div key={source.id} className="bg-secondary p-2 rounded-md text-xs text-muted-foreground border border-border/50" title={source.preview}>
-                                    <p className="font-mono text-primary/80 text-[10px] truncate">
-                                        Transcript: {source.transcript_id}
-                                    </p>
-                                    <p className="mt-1 text-foreground/80">
-                                        "{source.preview.trim()}"
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                        {message.sources.length > 3 && (
-                            <Button variant="link" size="sm" className="h-auto p-0 mt-2 text-xs font-semibold" onClick={() => toggleSources(message.id)}>
-                                {expandedSources.has(message.id) ? 'Show less' : `Show ${message.sources.length - 3} more sources...`}
-                            </Button>
-                        )}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
+    };
     
     return (
-        <div className="flex flex-col h-full bg-background relative isolate">
-            <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
-                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[40rem] h-[40rem] bg-primary/5 rounded-full blur-3xl opacity-50"></div>
-            </div>
+        <div className="h-full flex bg-background font-sans">
+             <style>{`
+                .typing-indicator { display: flex; align-items: center; gap: 4px; }
+                .typing-indicator span { width: 8px; height: 8px; background-color: hsl(var(--muted-foreground)); border-radius: 50%; animation: typing-bounce 1.2s infinite ease-in-out; }
+                .typing-indicator span:nth-child(2) { animation-delay: -0.2s; }
+                .typing-indicator span:nth-child(3) { animation-delay: -0.4s; }
+                @keyframes typing-bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
+                main::-webkit-scrollbar { display: none; }
+                main { -ms-overflow-style: none; scrollbar-width: none; }
+            `}</style>
             
-            <div ref={scrollRef} className="flex-1 overflow-y-auto px-6">
-                {messages.length === 0 && !isAiTyping ? (
-                    <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                        <h1 className="text-4xl font-bold text-foreground">What can I help with?</h1>
-                        <div className="mt-8 w-full max-w-3xl">
-                             <div className="flex items-center justify-center gap-2 mb-3">
-                                <p className="text-sm text-muted-foreground">Examples of queries:</p>
-                                <Tooltip content="Ask questions in natural language about your clinic data. The AI will search through consultation transcripts to give you accurate answers and summaries.">
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                                </Tooltip>
-                            </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                {exampleQueries.map((prompt, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => handlePromptClick(prompt)}
-                                        className="flex items-center justify-between p-3 bg-card/50 border border-border rounded-lg text-left text-sm text-foreground hover:bg-accent transition-colors disabled:opacity-50"
-                                        disabled={isAiTyping}
-                                    >
-                                       <span>{prompt}</span>
-                                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                ) : (
-                    <div>
-                        {messages.map((message) => <MessageEntry key={message.id} message={message} />)}
-                        
-                        {isAiTyping && messages[messages.length - 1]?.sender === 'ai' && messages[messages.length - 1]?.text === '' && (
-                            <div className="w-full max-w-3xl mx-auto py-6 border-b border-border last:border-b-0">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-                                        <Bot className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <span className="font-semibold text-foreground">AI Assistant</span>
-                                </div>
-                                <div className="pl-11">
-                                    <div className="flex items-center space-x-1.5">
-                                        <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></span>
-                                        <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.2s]"></span>
-                                        <span className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse [animation-delay:0.4s]"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
+            <ChatHistorySidebar isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />
 
-            <div className="px-4 pb-4 sm:px-6 bg-transparent sticky bottom-0">
-                <div className="w-full max-w-3xl mx-auto">
-                  <div className="relative flex items-end p-1 bg-secondary/70 backdrop-blur-sm rounded-xl shadow-sm border border-border">
-                      <textarea
-                          ref={textareaRef}
-                          value={input}
-                          onChange={(e) => setInput(e.target.value)}
-                          onKeyDown={handleKeyDown}
-                          placeholder="Ask AI anything..."
-                          className="flex-1 bg-transparent resize-none focus:outline-none text-sm text-foreground placeholder:text-muted-foreground disabled:opacity-50 p-3 pr-24"
-                          rows={1}
-                          disabled={isAiTyping}
-                      />
-                      <div className="absolute right-3 bottom-2.5 flex items-center gap-1">
-                          <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground" disabled={isAiTyping}>
-                              <Paperclip className="h-4 w-4" />
-                          </Button>
-                          <Button size="icon" className="h-9 w-9 bg-foreground text-background hover:bg-foreground/90" onClick={handleSendMessage} disabled={isSendDisabled}>
-                              <ArrowUp className="h-4 w-4" />
-                          </Button>
-                      </div>
-                  </div>
+            <div className="flex-1 flex flex-col relative transition-all duration-300 ease-in-out">
+                {!isHistoryOpen && (
+                    <button onClick={() => setIsHistoryOpen(true)} className="absolute top-4 left-4 z-20 p-2 rounded-md bg-card/50 backdrop-blur-sm border border-border hover:bg-secondary text-muted-foreground" aria-label="Open chat history">
+                        <Icons.HistoryIcon className="h-5 w-5" />
+                    </button>
+                )}
+                <main className="flex-1 flex flex-col items-center relative overflow-y-auto">
+                    {messages.length === 0 ? (
+                        <div className="flex-grow flex items-center justify-center w-full">
+                            <WelcomeScreen onSendMessage={handleSendMessage} isLoading={isLoading} />
+                        </div>
+                    ) : (
+                        <ChatView messages={messages} messagesEndRef={messagesEndRef} />
+                    )}
+                </main>
+                 <div className="sticky bottom-0 w-full flex justify-center">
+                    <ChatFooter onSendMessage={handleSendMessage} isLoading={isLoading} />
                 </div>
             </div>
         </div>

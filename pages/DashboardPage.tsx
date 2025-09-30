@@ -194,7 +194,7 @@ const DashboardPage: React.FC = () => {
   };
 
   const DashboardHeader = () => (
-    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
       <div>
         <h1 className="text-2xl font-bold text-foreground">Insights Dashboard</h1>
         <p className="text-muted-foreground mt-1">Real-time overview of consultation data</p>
@@ -263,9 +263,9 @@ const DashboardPage: React.FC = () => {
     <div className="p-4 sm:p-6 lg:p-8">
       <DashboardHeader />
       
-      <main>
+      <main className="mt-6 space-y-6">
         {/* High-Level Metrics */}
-        <div id="metric-cards-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div id="metric-cards-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {data.highLevelMetrics.map((metric) => (
             <MetricCard
               key={metric.title}
@@ -277,53 +277,66 @@ const DashboardPage: React.FC = () => {
           ))}
         </div>
         
-        {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
-            <div className="flex flex-col gap-6">
-              <div id="concerns-chart-card">
+        {/* Primary Visuals */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-5" id="concerns-chart-card">
                 <ConcernsChart 
                     data={data.concerns} 
                     onSliceClick={(name) => handleOpenNarrative(`Concern: ${name}`)}
-                  />
-              </div>
-              <TreatmentTrendsChart 
-                  data={data.treatmentTrends} 
-                  onBarClick={(payload) => handleOpenNarrative(`Treatment Trend: ${payload.name}`)}
-                />
-              <MarketingOpportunities
-                  demographicsData={data.demographics}
-                  seasonalData={data.seasonalTrends}
-                  onItemClick={(title) => handleOpenNarrative(title)}
                 />
             </div>
-
-            {/* Right Column */}
-            <div className="flex flex-col gap-6">
-              <PatientExperienceChart
-                  satisfactionData={data.satisfactionScores}
-                  educationData={data.educationScores}
-                  onPointClick={(payload) => handleOpenNarrative(`Patient Experience - ${payload.month}`)}
+            <div className="lg:col-span-7">
+                <TreatmentTrendsChart 
+                    data={data.treatmentTrends} 
+                    onBarClick={(payload) => handleOpenNarrative(`Treatment Trend: ${payload.name}`)}
                 />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            </div>
+        </div>
+        
+        {/* Secondary Visuals */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-7">
+                <PatientExperienceChart
+                    satisfactionData={data.satisfactionScores}
+                    educationData={data.educationScores}
+                    onPointClick={(payload) => handleOpenNarrative(`Patient Experience - ${payload.month}`)}
+                />
+            </div>
+            <div className="lg:col-span-5">
                 <TopProcedures 
                     data={data.topProcedures} 
                     onItemClick={(name) => handleOpenNarrative(`Top Procedure: ${name}`)}
-                  />
-                <WorkflowQuality 
-                    data={data.workflowQuality}
-                    onItemClick={(title) => handleOpenNarrative(`Workflow Quality: ${title}`)}
-                  />
-              </div>
-              <SalesExcellence 
-                  scores={data.salesExcellence}
-                  onScoreClick={(skill) => handleOpenNarrative(`Sales Excellence: ${skill}`)}
-                />
-              <AnalysisFields 
-                  insights={data.analysisFields}
-                  onItemClick={(category) => handleOpenNarrative(`Analysis: ${category}`)}
                 />
             </div>
+        </div>
+
+        {/* Growth Opportunities & Sales */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div className="lg:col-span-8">
+                <MarketingOpportunities
+                    demographicsData={data.demographics}
+                    seasonalData={data.seasonalTrends}
+                    onItemClick={(title) => handleOpenNarrative(title)}
+                />
+            </div>
+            <div className="lg:col-span-4">
+                <SalesExcellence 
+                    scores={data.salesExcellence}
+                    onScoreClick={(skill) => handleOpenNarrative(`Sales Excellence: ${skill}`)}
+                />
+            </div>
+        </div>
+
+        {/* Qualitative Insights */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <WorkflowQuality 
+                data={data.workflowQuality}
+                onItemClick={(title) => handleOpenNarrative(`Workflow Quality: ${title}`)}
+            />
+            <AnalysisFields 
+                insights={data.analysisFields}
+                onItemClick={(category) => handleOpenNarrative(`Analysis: ${category}`)}
+            />
         </div>
       </main>
 

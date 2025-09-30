@@ -1,4 +1,5 @@
 
+
 import React, { useContext } from 'react';
 import { Podcast } from '../types';
 import { PlayerContext } from '../contexts/PlayerContext';
@@ -59,9 +60,9 @@ const PodcastsPage: React.FC = () => {
     };
     
     return (
-        <div className="flex h-full">
+        <div className="flex flex-col lg:flex-row lg:h-full">
             {/* Left Column: Podcast List */}
-            <div className="w-1/2 flex-shrink-0 border-r border-border h-full flex flex-col">
+            <div className="w-full lg:w-1/2 flex-shrink-0 border-b lg:border-b-0 lg:border-r border-border flex flex-col">
                 <DashboardCard
                     title="Weekly Improvement Podcasts"
                     tooltipText="Listen to AI-generated weekly audio summaries that distill key learnings from consultations to help you continuously improve."
@@ -107,7 +108,7 @@ const PodcastsPage: React.FC = () => {
             </div>
             
             {/* Right Column: Player Card */}
-            <div className="w-1/2 p-4 sm:p-6 lg:p-8">
+            <div className="w-full lg:w-1/2 p-4 sm:p-6 lg:p-8">
                  <PodcastPlayerCard />
             </div>
         </div>

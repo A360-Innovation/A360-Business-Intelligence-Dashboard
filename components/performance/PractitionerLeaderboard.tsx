@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { PractitionerProfile } from '../../types';
 import { cn } from '../../lib/utils';
@@ -27,7 +28,7 @@ const PractitionerLeaderboard: React.FC<PractitionerLeaderboardProps> = ({ pract
     };
 
     return (
-        <aside className="w-80 flex-shrink-0 bg-card border-r border-border h-full flex flex-col">
+        <aside className="w-full lg:w-80 flex-shrink-0 bg-card border-b lg:border-b-0 lg:border-r border-border lg:h-full flex flex-col">
             <div className="p-4 border-b border-border">
                 <h2 className="font-bold text-foreground">Practitioner List</h2>
                 <div className="flex items-center gap-2 mt-3">

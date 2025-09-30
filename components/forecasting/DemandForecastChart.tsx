@@ -1,14 +1,13 @@
-
 import React from 'react';
 import { ForecastDataPoint } from '../../types';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceArea } from 'recharts';
 import DashboardCard from '../DashboardCard';
 
 interface DemandForecastChartProps {
   data: ForecastDataPoint[];
 }
 
-const colors = {
+const colors: { [key: string]: string } = {
     Botox: 'hsl(var(--primary))',
     Fillers: 'hsl(var(--success))',
     Peel: 'hsl(var(--warning))',
@@ -20,7 +19,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         <div className="bg-card p-3 border border-border rounded-lg shadow-sm">
           <p className="font-bold text-card-foreground mb-2">{label}</p>
           {payload.map((pld: any) => (
-            <p key={pld.dataKey} style={{ color: pld.stroke }} className="text-sm">
+            <p key={pld.dataKey} style={{ color: colors[pld.name.replace('_forecast', '')] }} className="text-sm">
               {`${pld.name.replace('_forecast', '')}: ${Math.round(pld.value)} ${pld.dataKey.includes('forecast') ? '(Forecast)' : ''}`}
             </p>
           ))}
@@ -41,45 +40,56 @@ const DemandForecastChart: React.FC<DemandForecastChartProps> = ({ data }) => {
         >
             <div style={{ width: '100%', height: 350 }}>
                 <ResponsiveContainer>
-                    <LineChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                    <AreaChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                        <defs>
+                          {treatments.map(t => (
+                              <linearGradient key={t} id={`grad-${t}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={colors[t]} stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor={colors[t]} stopOpacity={0}/>
+                              </linearGradient>
+                          ))}
+                        </defs>
+                        <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}/>
                         
                         {forecastStartIndex > -1 && (
-                            <ReferenceArea x1={data[forecastStartIndex - 1].month} x2={data[data.length - 1].month} stroke="none" fill="hsl(var(--secondary))" fillOpacity={0.5} label={{ value: "Forecast", position: "insideTopLeft", fill: "hsl(var(--muted-foreground))", fontSize: 12, dy: 10, dx: 10 }} />
+                            <ReferenceArea x1={data[forecastStartIndex].month} x2={data[data.length - 1].month} stroke="none" fill="hsl(var(--secondary))" fillOpacity={0.5} />
                         )}
 
                         {treatments.map(treatment => (
-                            <Line
+                            <Area
                                 key={treatment}
                                 type="monotone"
                                 dataKey={treatment}
-                                stroke={colors[treatment as keyof typeof colors]}
+                                stroke={colors[treatment]}
+                                fill={`url(#grad-${treatment})`}
                                 strokeWidth={2}
-                                dot={{ r: 3 }}
-                                activeDot={{ r: 5 }}
+                                dot={false}
+                                activeDot={{ r: 5, stroke: 'hsl(var(--card))', strokeWidth: 2 }}
                                 connectNulls
                                 name={treatment}
+                                style={{ filter: `drop-shadow(0px 2px 4px ${colors[treatment]}60)` }}
                             />
                         ))}
                         {treatments.map(treatment => (
-                            <Line
+                            <Area
                                 key={`${treatment}_forecast`}
                                 type="monotone"
                                 dataKey={`${treatment}_forecast`}
-                                stroke={colors[treatment as keyof typeof colors]}
+                                stroke={colors[treatment]}
+                                fill="transparent"
                                 strokeWidth={2}
                                 strokeDasharray="5 5"
-                                dot={{ r: 3 }}
-                                activeDot={{ r: 5 }}
+                                dot={false}
+                                activeDot={{ r: 5, stroke: 'hsl(var(--card))', strokeWidth: 2 }}
                                 connectNulls
-                                name={treatment}
+                                name={`${treatment} (Forecast)`}
                             />
                         ))}
-                    </LineChart>
+                    </AreaChart>
                 </ResponsiveContainer>
             </div>
         </DashboardCard>

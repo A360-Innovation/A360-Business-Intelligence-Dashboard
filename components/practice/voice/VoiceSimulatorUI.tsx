@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Scenario, TranscriptMessage, FeedbackNotification, SimulationStatus } from '../../../types';
 import { Button } from '../../ui/button';
@@ -111,13 +112,13 @@ const VoiceSimulatorUI: React.FC<VoiceSimulatorUIProps> = ({ scenario, onEndSess
     };
 
     return (
-        <div className="flex h-full bg-background relative isolate overflow-hidden">
+        <div className="flex flex-col lg:flex-row h-full bg-background relative isolate overflow-hidden">
             <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60rem] h-[60rem] bg-primary/5 rounded-full blur-3xl opacity-50"></div>
             </div>
 
             {/* Left Panel: Patient Profile */}
-            <aside className="w-80 flex-shrink-0 bg-card/50 backdrop-blur-sm border-r border-border h-full flex flex-col p-6">
+            <aside className="w-full lg:w-80 flex-shrink-0 bg-card/50 backdrop-blur-sm border-b lg:border-b-0 lg:border-r border-border lg:h-full flex flex-col p-6">
                 <PatientProfileCard persona={scenario.persona} status={status} />
             </aside>
 
@@ -130,7 +131,7 @@ const VoiceSimulatorUI: React.FC<VoiceSimulatorUIProps> = ({ scenario, onEndSess
             </main>
 
             {/* Right Panel: Feedback & Controls */}
-            <aside className="w-96 flex-shrink-0 bg-card border-l border-border h-full flex flex-col">
+            <aside className="w-full lg:w-96 flex-shrink-0 bg-card border-t lg:border-t-0 lg:border-l border-border lg:h-full flex flex-col">
                 <div className="flex-1 p-4 space-y-3 relative overflow-y-auto">
                     {feedback.map(f => (
                         <FeedbackToast 

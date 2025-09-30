@@ -18,13 +18,13 @@ const seasonIcons: { [key: string]: React.ElementType } = {
 };
 
 const concernColors: { [key: string]: string } = {
-    'Acne': '#547BA3',
-    'Pigmentation': '#7795B9',
-    'Scarring': '#9AB3D0',
-    'Wrinkles': '#BDD1E6',
-    'Texture': '#E0EEFA',
-    'Sagging': '#416288',
-    'Volume Loss': '#324D6A',
+    'Acne': 'hsl(var(--primary))',
+    'Pigmentation': 'hsl(212, 56%, 70%)',
+    'Scarring': 'hsl(212, 56%, 80%)',
+    'Wrinkles': '#a3a3a3',
+    'Texture': '#b8b8b8',
+    'Sagging': 'hsl(33, 94%, 51%)',
+    'Volume Loss': 'hsl(33, 94%, 61%)',
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -75,8 +75,8 @@ const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demogra
                 margin={{ top: 5, right: 20, left: -10, bottom: 20 }}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" />
-                <XAxis type="number" tickFormatter={(tick) => `${tick}%`} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                <YAxis dataKey="group" type="category" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} width={40}/>
+                <XAxis type="number" tickFormatter={(tick) => `${tick}%`} domain={[0, 100]} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="group" type="category" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} width={40} axisLine={false} tickLine={false} />
                 <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--accent))' }} />
                 <Legend
                   iconType="circle"
@@ -108,9 +108,9 @@ const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demogra
                   <div
                     key={item.season}
                     onClick={() => onItemClick(`Seasonal Trend: ${item.season}`)}
-                    className="cursor-pointer p-4 rounded-lg border hover:bg-accent transition-colors flex flex-col items-center justify-center text-center"
+                    className="cursor-pointer p-4 rounded-lg border hover:bg-accent transition-colors flex flex-col items-center justify-center text-center group"
                   >
-                    {Icon && <Icon className="h-6 w-6 text-primary mb-2" />}
+                    {Icon && <Icon className="h-6 w-6 text-primary mb-2 group-hover:scale-110 transition-transform" />}
                     <p className="font-semibold text-sm text-foreground">{item.season}</p>
                     <p className="text-2xl font-bold text-primary mt-1">+{item.increase}%</p>
                     <p className="text-xs text-muted-foreground mt-1">{item.concern}</p>

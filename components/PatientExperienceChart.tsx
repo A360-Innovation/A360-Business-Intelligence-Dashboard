@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import { PatientExperienceData } from '../types';
 import DashboardCard from './DashboardCard';
 
@@ -36,10 +36,20 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
     <DashboardCard title="Patient Experience & Sentiment" tooltipText="Scores are derived from NLP markers in transcripts, analyzing patient language for satisfaction and understanding.">
       <div style={{ width: '100%', height: 350 }}>
         <ResponsiveContainer>
-          <LineChart data={combinedData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-            <YAxis domain={[70, 100]} tickFormatter={(tick) => `${tick}%`} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}/>
+          <AreaChart data={combinedData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+            <defs>
+              <linearGradient id="satisfactionGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+              </linearGradient>
+              <linearGradient id="educationGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.4}/>
+                <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+            <XAxis dataKey="month" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+            <YAxis domain={[70, 100]} tickFormatter={(tick) => `${tick}%`} tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false}/>
             <RechartsTooltip content={<CustomTooltip />} />
             <Legend
               iconType="circle"
@@ -49,29 +59,33 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
                 color: 'hsl(var(--muted-foreground))',
               }}
             />
-            <Line 
+            <Area 
                 name="Overall Satisfaction" 
                 type="monotone" 
-                dataKey="satisfaction" 
+                dataKey="satisfaction"
                 stroke="hsl(var(--primary))"
-                strokeWidth={2} 
-                dot={{ r: 4, fill: 'hsl(var(--primary))' }} 
-                // Fix: Corrected the onClick handler signature. It receives a single props object.
-                activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload) }} 
-                className="cursor-pointer" 
+                fill="url(#satisfactionGradient)"
+                strokeWidth={2.5}
+                dot={{ r: 4, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
+                // Fix: Correctly access the data payload from the 'props' object provided by recharts instead of the raw event target.
+                activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload), stroke: 'hsl(var(--primary))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
+                className="cursor-pointer"
+                style={{ filter: 'drop-shadow(0px 2px 4px hsl(var(--primary) / 0.3))' }}
             />
-            <Line 
+             <Area 
                 name="Education Effectiveness" 
                 type="monotone" 
-                dataKey="education" 
+                dataKey="education"
                 stroke="hsl(var(--success))"
-                strokeWidth={2} 
-                dot={{ r: 4, fill: 'hsl(var(--success))' }} 
-                // Fix: Corrected the onClick handler signature. It receives a single props object.
-                activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload) }} 
+                fill="url(#educationGradient)"
+                strokeWidth={2.5}
+                dot={{ r: 4, fill: 'hsl(var(--success))', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
+                // Fix: Correctly access the data payload from the 'props' object provided by recharts instead of the raw event target.
+                activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload), stroke: 'hsl(var(--success))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
                 className="cursor-pointer"
+                style={{ filter: 'drop-shadow(0px 2px 4px hsl(var(--success) / 0.3))' }}
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </DashboardCard>
