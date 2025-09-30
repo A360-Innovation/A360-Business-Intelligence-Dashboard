@@ -18,18 +18,44 @@ const NarrativePane: React.FC<NarrativePaneProps> = ({ isOpen, title, content, o
     if (c === 'loading') {
       return c;
     }
-    // Process each line to fix common markdown heading issues.
+  
+    let formattedText = c;
+
+    // Specific formatting for "Opportunity Snapshot"
+    if (formattedText.includes('Opportunity Snapshot')) {
+      // Main Headers
+      formattedText = formattedText
+        .replace(/Opportunity Snapshot:/g, '## Opportunity Snapshot')
+        .replace(/Ranked Opportunities:/g, '### Ranked Opportunities');
+      
+      // Numbered list for each opportunity
+      formattedText = formattedText.replace(/(\d+)\. (Product\/Service:)/g, '\n\n$1. **$2**');
+      
+      // Key-value pairs within each opportunity
+      const labels = [
+        "Relevance", "Consultation trigger", "Introduction script",
+        "Clinical justification", "Frequency missed", "Revenue impact",
+        "Success indicators"
+      ];
+      
+      labels.forEach(label => {
+        const regex = new RegExp(`(\\*)?\\s*(${label}):`, 'gi');
+        formattedText = formattedText.replace(regex, '\n- **$2:**');
+      });
+      
+      return formattedText;
+    }
+
+    // Default formatting for other content (e.g., fixing headings)
     return c.split('\n').map(line => {
-        // Trim whitespace from the start of the line.
         const trimmedLine = line.trimStart();
-        // Match lines that start with one or more '#' characters.
         const match = trimmedLine.match(/^(#+)(.*)/);
         if (match) {
-            const hashes = match[1]; // The '#' characters
-            const content = match[2].trim(); // The heading text
-            return `${hashes} ${content}`; // Reconstruct with a single space
+            const hashes = match[1];
+            const contentText = match[2].trim();
+            return `${hashes} ${contentText}`;
         }
-        return line; // Return original line if it's not a heading
+        return line;
     }).join('\n');
   };
 

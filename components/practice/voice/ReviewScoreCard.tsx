@@ -1,7 +1,9 @@
 
+
 import React from 'react';
 import { cn } from '../../../lib/utils';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../ui/card';
+import { CardContent } from '../../ui/card';
+import DashboardCard from '../../DashboardCard';
 
 interface ReviewScoreCardProps {
     score: number;
@@ -18,15 +20,13 @@ const ReviewScoreCard: React.FC<ReviewScoreCardProps> = ({ score, title, descrip
     };
     
     return (
-        <Card>
-            <CardHeader className="pb-2">
-                <CardTitle className="text-base">{title}</CardTitle>
-                <CardDescription className="text-xs">{description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <p className={cn("text-5xl font-bold", getScoreColor(score))}>{score}<span className="text-3xl text-muted-foreground">%</span></p>
-            </CardContent>
-        </Card>
+        <DashboardCard
+            title={title}
+            tooltipText="This score is automatically calculated by analyzing your transcript for effective communication markers related to this skill."
+        >
+            <p className="text-xs text-muted-foreground -mt-4 mb-2">{description}</p>
+            <p className={cn("text-5xl font-bold", getScoreColor(score))}>{score}<span className="text-3xl text-muted-foreground">%</span></p>
+        </DashboardCard>
     );
 };
 

@@ -1,5 +1,6 @@
 
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Timeframe, NarrativePaneInfo } from '../types';
 import MetricCard from '../components/MetricCard';
 import ConcernsChart from '../components/ConcernsChart';
@@ -13,9 +14,11 @@ import AnalysisFields from '../components/AnalysisFields';
 import NarrativePane from '../components/NarrativePane';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, HelpCircle } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
+
+declare const Shepherd: any;
 
 const DashboardPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState<Timeframe>('Monthly');
@@ -27,6 +30,80 @@ const DashboardPage: React.FC = () => {
   const [analysisCache, setAnalysisCache] = useState<{ [key: string]: string }>({});
   
   const { data, loading, error } = useDashboardData();
+  const tourRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (typeof Shepherd === 'undefined' || loading || error) {
+        return;
+    }
+
+    const tour = new Shepherd.Tour({
+      useModalOverlay: true,
+      defaultStepOptions: {
+        classes: 'shadow-md',
+        scrollTo: { behavior: 'smooth', block: 'center' },
+        cancelIcon: {
+            enabled: true,
+        },
+      }
+    });
+
+    tour.addStep({
+        id: 'welcome',
+        title: 'Welcome to Aesthetics360!',
+        text: 'This guided tour will walk you through the key features of your clinic dashboard. Let\'s get started!',
+        buttons: [{ action: tour.next, text: 'Next' }]
+    });
+
+    tour.addStep({
+        id: 'navigation',
+        title: 'Main Navigation',
+        text: 'Use the sidebar to navigate between different modules like the Dashboard, Chat, Practice Mode, and more.',
+        attachTo: { element: '#sidebar', on: 'right' },
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
+    });
+    
+    tour.addStep({
+        id: 'timeframe',
+        title: 'Timeframe Selection',
+        text: 'Easily switch between Monthly and Weekly views to see data from different periods.',
+        attachTo: { element: '#timeframe-switcher', on: 'bottom' },
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
+    });
+
+    tour.addStep({
+        id: 'metrics',
+        title: 'Key Performance Indicators (KPIs)',
+        text: 'These cards show your most important metrics at a glance. Click any card to open a detailed, AI-generated analysis.',
+        attachTo: { element: '#metric-cards-grid', on: 'bottom' },
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
+    });
+    
+    tour.addStep({
+        id: 'concerns',
+        title: 'Interactive Charts',
+        text: 'Visualizations like this "Patient Concerns" chart are interactive. Click on a slice to drill down for more specific data.',
+        attachTo: { element: '#concerns-chart-card', on: 'bottom' },
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
+    });
+
+    tour.addStep({
+        id: 'chat',
+        title: 'A360 Chat',
+        text: 'Have a specific question? Use our AI-powered chat to query your clinic data using natural language.',
+        attachTo: { element: '#nav-item-chat', on: 'right' },
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Finish' }]
+    });
+
+    tourRef.current = tour;
+
+    return () => {
+        if (tour.isActive()) {
+            tour.cancel();
+        }
+    };
+  }, [loading, error]);
+
 
   const handleOpenNarrative = async (title: string) => {
     // Check cache first
@@ -123,7 +200,7 @@ const DashboardPage: React.FC = () => {
         <p className="text-muted-foreground mt-1">Real-time overview of consultation data</p>
       </div>
       <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-        <div className="flex items-center bg-secondary rounded-lg p-1 text-sm font-medium">
+        <div id="timeframe-switcher" className="flex items-center bg-secondary rounded-lg p-1 text-sm font-medium">
           <Button
             onClick={() => setTimeframe('Monthly')}
             variant="ghost"
@@ -149,6 +226,10 @@ const DashboardPage: React.FC = () => {
           </select>
           <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
         </div>
+        <Button variant="outline" size="sm" onClick={() => tourRef.current?.start()} className="h-9">
+            <HelpCircle className="h-4 w-4 mr-2"/>
+            Take a tour
+        </Button>
       </div>
     </header>
   );
@@ -184,7 +265,7 @@ const DashboardPage: React.FC = () => {
       
       <main>
         {/* High-Level Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div id="metric-cards-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
           {data.highLevelMetrics.map((metric) => (
             <MetricCard
               key={metric.title}
@@ -200,10 +281,12 @@ const DashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column */}
             <div className="flex flex-col gap-6">
-              <ConcernsChart 
-                  data={data.concerns} 
-                  onSliceClick={(name) => handleOpenNarrative(`Concern: ${name}`)}
-                />
+              <div id="concerns-chart-card">
+                <ConcernsChart 
+                    data={data.concerns} 
+                    onSliceClick={(name) => handleOpenNarrative(`Concern: ${name}`)}
+                  />
+              </div>
               <TreatmentTrendsChart 
                   data={data.treatmentTrends} 
                   onBarClick={(payload) => handleOpenNarrative(`Treatment Trend: ${payload.name}`)}

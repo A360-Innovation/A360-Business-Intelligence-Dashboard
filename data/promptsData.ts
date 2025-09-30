@@ -25,7 +25,6 @@ This is the most critical section. Provide 2-3 specific, actionable recommendati
 Briefly identify any underlying risks (e.g., "a decline in satisfaction for a key procedure") or untapped opportunities (e.g., "a growing interest in a new treatment category") that the data suggests.
 
 Your tone should be professional, authoritative, and focused on driving business decisions. Do not just restate data; interpret it.`,
-    placeholders: ['{METRIC_TITLE}', '{TIME_FRAME}'],
   },
   {
     id: 'chat-summary',
@@ -48,7 +47,6 @@ Your task is to answer the user's question based on the provided context from co
 4.  Do not make up information. Your response must be grounded in the provided context.
 5.  List the transcript IDs of the sources you used to formulate your answer.
 6.  Format your response in clear, readable Markdown.`,
-    placeholders: ['{CLINIC_NAME}', '{USER_QUESTION}', '{CONTEXT_CHUNKS}'],
   },
   {
     id: 'podcast-script-generation',
@@ -71,7 +69,6 @@ Your task is to generate a 5-minute audio script for the "Aesthetics360 Weekly I
 4.  Conclude with a quick summary and a positive, motivating sign-off.
 5.  The tone should be educational, encouraging, and professional. Write for audio – use shorter sentences and a conversational style.
 6.  The entire script should be readable in approximately 5 minutes (around 750 words).`,
-    placeholders: ['{PODCAST_THEME}', '{KEY_INSIGHTS}'],
   },
   {
     id: 'objection-handling-rationale',
@@ -91,6 +88,5 @@ Write a concise rationale (1-2 sentences) explaining *why* this is a critical ob
 **Example Rationale:** "The patient is expressing cost concerns. This is a key opportunity to re-frame the conversation from price to long-term value and patient outcomes."
 
 Your rationale for the provided snippet is:`,
-    placeholders: ['{SNIPPET}'],
   }
 ];

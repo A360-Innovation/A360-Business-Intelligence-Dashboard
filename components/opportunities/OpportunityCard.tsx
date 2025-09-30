@@ -4,7 +4,8 @@ import { Opportunity } from '../../types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, HelpCircle } from 'lucide-react';
+import Tooltip from '../Tooltip';
 
 interface OpportunityCardProps {
     opportunity: Opportunity;
@@ -28,7 +29,12 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
         <Card className="flex flex-col h-full">
             <CardHeader>
                 <div className="flex justify-between items-start">
-                    <CardTitle className="text-base capitalize">{opportunity.type.replace('_', ' ')}</CardTitle>
+                    <div className="flex items-center gap-2">
+                        <CardTitle className="text-base capitalize">{opportunity.type.replace('_', ' ')}</CardTitle>
+                        <Tooltip content="This card highlights a key moment from a consultation. The 'snippet' is the direct quote, and the 'AI rationale' explains why it's a coaching opportunity.">
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </Tooltip>
+                    </div>
                     <span className="text-xs text-muted-foreground">{formattedDate}</span>
                 </div>
             </CardHeader>

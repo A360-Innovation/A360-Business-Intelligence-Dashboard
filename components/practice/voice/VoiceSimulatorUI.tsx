@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Scenario, TranscriptMessage, FeedbackNotification, SimulationStatus } from '../../../types';
 import { Button } from '../../ui/button';

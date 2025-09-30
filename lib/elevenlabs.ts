@@ -1,5 +1,7 @@
+
+
 // NOTE: This requires the ELEVENLABS_API_KEY environment variable to be set.
-const ELEVENLABS_API_KEY = 'sk_db786d04fd39b7d683e214e88f5e940d36c5e5d2ed5801d4';
+const ELEVENLABS_API_KEY = '';
 // A standard, high-quality voice (Rachel) suitable for a professional setting.
 const VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
 

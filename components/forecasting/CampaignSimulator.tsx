@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
 import { CampaignSimulation } from '../../types';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { ChevronDown, Sparkles } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import DashboardCard from '../DashboardCard';
 
 interface CampaignSimulatorProps {
   simulations: CampaignSimulation[];
@@ -29,14 +29,12 @@ const CampaignSimulator: React.FC<CampaignSimulatorProps> = ({ simulations }) =>
   };
 
   return (
-    <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center">
-          <Sparkles className="h-5 w-5 mr-2 text-primary" />
-          Campaign Impact Simulator
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+    <DashboardCard
+        title="Campaign Impact Simulator"
+        tooltipText="Use this simulator to predict the impact of different marketing campaigns on the demand for specific treatments."
+        className="h-full"
+        headerContent={<Sparkles className="h-5 w-5 text-primary" />}
+    >
         <div className="space-y-4">
           <div>
             <label className="text-sm font-medium text-muted-foreground">Select Treatment</label>
@@ -79,8 +77,7 @@ const CampaignSimulator: React.FC<CampaignSimulatorProps> = ({ simulations }) =>
                 <p className="text-sm text-muted-foreground italic">{result.summary}</p>
             </div>
         )}
-      </CardContent>
-    </Card>
+    </DashboardCard>
   );
 };
 

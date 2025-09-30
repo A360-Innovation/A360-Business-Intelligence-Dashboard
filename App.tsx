@@ -1,4 +1,5 @@
 
+
 import React, { useState, useContext } from 'react';
 import { Page } from './types';
 import Sidebar from './components/layout/Sidebar';
@@ -13,6 +14,7 @@ import ForecastingPage from './pages/ForecastingPage';
 import MarketIntelPage from './pages/MarketIntelPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import PromptsPage from './pages/PromptsPage';
+import SettingsPage from './pages/SettingsPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import { cn } from './lib/utils';
@@ -33,6 +35,7 @@ const AppContent: React.FC = () => {
     market: 'Market Intelligence',
     opportunities: 'Opportunities Hub',
     prompts: 'Prompt Library',
+    settings: 'Settings',
   };
 
   return (
@@ -56,6 +59,7 @@ const AppContent: React.FC = () => {
           {currentPage === 'market' && <MarketIntelPage />}
           {currentPage === 'opportunities' && <OpportunitiesPage />}
           {currentPage === 'prompts' && <PromptsPage />}
+          {currentPage === 'settings' && <SettingsPage />}
         </main>
         {currentPodcast && <Player />}
       </div>

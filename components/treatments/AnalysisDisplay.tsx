@@ -5,6 +5,7 @@ import { TreatmentAnalysis } from '../../data/treatmentAnalysisData';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
 import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, Bar } from 'recharts';
 import { MessageSquareWarning, ScrollText, Zap } from 'lucide-react';
+import DashboardCard from '../DashboardCard';
 
 interface AnalysisDisplayProps {
   treatment: Procedure | null;
@@ -61,9 +62,11 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader><CardTitle>Common Patient Objections</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
+                <DashboardCard
+                    title="Common Patient Objections"
+                    tooltipText="Identifies the most common concerns and objections patients express about this treatment so you can prepare."
+                >
+                    <div className="space-y-4">
                         {analysisData.objections.map(obj => (
                             <div key={obj.title} className="flex items-start">
                                 <MessageSquareWarning className="h-5 w-5 text-warning mr-3 mt-1 flex-shrink-0" />
@@ -73,12 +76,14 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                                 </div>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </DashboardCard>
 
-                <Card>
-                    <CardHeader><CardTitle>Effective Scripts & Talking Points</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
+                <DashboardCard
+                    title="Effective Scripts & Talking Points"
+                    tooltipText="Examples of effective phrases and talking points used by top practitioners to educate patients and handle objections."
+                >
+                    <div className="space-y-4">
                          {analysisData.effectiveScripts.map(item => (
                             <div key={item.title} className="flex items-start">
                                 <ScrollText className="h-5 w-5 text-success mr-3 mt-1 flex-shrink-0" />
@@ -88,12 +93,14 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                                 </div>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </DashboardCard>
                 
-                 <Card>
-                    <CardHeader><CardTitle>Cross-Sell Opportunities</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
+                 <DashboardCard
+                    title="Cross-Sell Opportunities"
+                    tooltipText="Discover which other treatments are frequently recommended alongside this one, creating up-selling opportunities."
+                 >
+                    <div className="space-y-4">
                          {analysisData.crossSell.map(item => (
                             <div key={item.name} className="flex items-start">
                                 <Zap className="h-5 w-5 text-primary mr-3 mt-1 flex-shrink-0" />
@@ -103,25 +110,25 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                                 </div>
                             </div>
                         ))}
-                    </CardContent>
-                </Card>
+                    </div>
+                </DashboardCard>
 
-                <Card>
-                    <CardHeader><CardTitle>Patient Demographics Profile</CardTitle></CardHeader>
-                    <CardContent>
-                       <div style={{ width: '100%', height: 250 }}>
-                           <ResponsiveContainer>
-                                <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                    <XAxis dataKey="group" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                                    <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                                    <RechartsTooltip />
-                                    <Bar dataKey="value" fill="hsl(var(--primary))" name="Concern Score" />
-                                </BarChart>
-                           </ResponsiveContainer>
-                       </div>
-                    </CardContent>
-                </Card>
+                <DashboardCard
+                    title="Patient Demographics Profile"
+                    tooltipText="Understand the demographic profile of patients most interested in this treatment to focus your marketing efforts."
+                >
+                   <div style={{ width: '100%', height: 250 }}>
+                       <ResponsiveContainer>
+                            <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                                <XAxis dataKey="group" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
+                                <RechartsTooltip />
+                                <Bar dataKey="value" fill="hsl(var(--primary))" name="Concern Score" />
+                            </BarChart>
+                       </ResponsiveContainer>
+                   </div>
+                </DashboardCard>
             </div>
         </div>
     );

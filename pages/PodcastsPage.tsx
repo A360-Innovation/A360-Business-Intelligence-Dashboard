@@ -3,6 +3,9 @@ import React, { useContext } from 'react';
 import { Podcast } from '../types';
 import { PlayerContext } from '../contexts/PlayerContext';
 import { Play, Pause, Music } from 'lucide-react';
+import PodcastPlayerCard from '../components/PodcastPlayerCard';
+import { cn } from '../lib/utils';
+import DashboardCard from '../components/DashboardCard';
 
 const podcasts: Podcast[] = [
   {
@@ -56,58 +59,57 @@ const PodcastsPage: React.FC = () => {
     };
     
     return (
-        <div className="p-4 sm:p-6 lg:p-8">
-            <header className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Weekly Improvement Podcasts</h1>
-                <p className="text-muted-foreground mt-1">AI-generated audio summaries to help you refine your skills.</p>
-            </header>
-            <main>
-                <div className="border border-border rounded-lg overflow-hidden">
-                    <div className="flex flex-col">
-                        <div className="grid grid-cols-[50px_4fr_6fr_1fr] items-center gap-4 px-4 py-2 border-b border-border bg-secondary text-xs text-muted-foreground font-semibold uppercase">
-                            <div className="text-center">#</div>
-                            <div>Title</div>
-                            <div>Summary</div>
-                            <div className="text-right">Duration</div>
-                        </div>
-                        {podcasts.map((podcast, index) => {
-                            const isActive = currentPodcast?.id === podcast.id;
-                            return (
-                                <div 
-                                    key={podcast.id} 
-                                    className="grid grid-cols-[50px_4fr_6fr_1fr] items-center gap-4 px-4 h-20 group hover:bg-accent transition-colors border-b border-border last:border-b-0"
-                                >
-                                    <div className="flex items-center justify-center relative">
-                                        <button 
-                                            onClick={() => handlePlayClick(podcast)}
-                                            className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity z-10"
-                                        >
-                                            {isActive && isPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white" />}
-                                        </button>
+        <div className="flex h-full">
+            {/* Left Column: Podcast List */}
+            <div className="w-1/2 flex-shrink-0 border-r border-border h-full flex flex-col">
+                <DashboardCard
+                    title="Weekly Improvement Podcasts"
+                    tooltipText="Listen to AI-generated weekly audio summaries that distill key learnings from consultations to help you continuously improve."
+                    className="h-full flex flex-col !rounded-none !border-0"
+                >
+                    <p className="text-muted-foreground mt-1 text-sm -mt-4 mb-4">AI-generated audio summaries to refine your skills.</p>
+                     <div className="flex-1 overflow-y-auto -mx-6">
+                        <div className="flex flex-col">
+                            {podcasts.map((podcast) => {
+                                const isActive = currentPodcast?.id === podcast.id;
+                                return (
+                                    <div 
+                                        key={podcast.id} 
+                                        onClick={() => handlePlayClick(podcast)}
+                                        className={cn(
+                                            "flex items-center gap-4 p-4 group hover:bg-accent transition-colors border-b border-border last:border-b-0 cursor-pointer",
+                                            isActive && "bg-secondary"
+                                        )}
+                                    >
+                                        <div className="relative h-12 w-12 flex-shrink-0">
+                                            <img src={podcast.imageUrl} alt={podcast.title} className="h-full w-full rounded-md object-cover" />
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-md opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                {isActive && isPlaying ? <Pause className="h-5 w-5 text-white" /> : <Play className="h-5 w-5 text-white" />}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex-1">
+                                            <p className={cn("font-semibold text-sm", isActive ? 'text-primary' : 'text-foreground')}>{podcast.title}</p>
+                                            <p className="text-xs text-muted-foreground">{podcast.date} &middot; {podcast.duration}</p>
+                                        </div>
                                         
-                                        {isActive ? (
-                                             <div className="flex items-center justify-center h-10 w-10">
+                                        {isActive && (
+                                            <div className="flex items-center justify-center h-10 w-10">
                                                 <Music className="h-5 w-5 text-primary animate-pulse" />
                                             </div>
-                                        ) : (
-                                            <span className="text-muted-foreground group-hover:opacity-0">{index + 1}</span>
                                         )}
                                     </div>
-                                    <div className="flex items-center gap-3">
-                                        <img src={podcast.imageUrl} alt={podcast.title} className="h-10 w-10 rounded-md object-cover" />
-                                        <div>
-                                            <p className={`font-semibold ${isActive ? 'text-primary' : 'text-foreground'}`}>{podcast.title}</p>
-                                            <p className="text-xs text-muted-foreground">{podcast.date}</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-sm text-muted-foreground truncate">{podcast.summary}</p>
-                                    <p className="text-sm text-muted-foreground text-right">{podcast.duration}</p>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            </main>
+                </DashboardCard>
+            </div>
+            
+            {/* Right Column: Player Card */}
+            <div className="w-1/2 p-4 sm:p-6 lg:p-8">
+                 <PodcastPlayerCard />
+            </div>
         </div>
     );
 };

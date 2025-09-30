@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { PatientJourney } from '../../types';
-import { User, Activity, Edit } from 'lucide-react';
+import { User, Activity, HelpCircle } from 'lucide-react';
+import Tooltip from '../Tooltip';
 
 interface JourneySelectorProps {
     journeys: PatientJourney[];
@@ -15,8 +16,13 @@ const JourneySelector: React.FC<JourneySelectorProps> = ({ journeys, onSelect })
                 <div 
                     key={journey.id}
                     onClick={() => onSelect(journey)}
-                    className="bg-card border border-border rounded-xl flex flex-col p-6 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1.5 hover:border-primary"
+                    className="bg-card border border-border rounded-xl flex flex-col p-6 cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1.5 hover:border-primary relative group"
                 >
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Tooltip content="Analyze patient archetypes to understand their complete experiences, from initial inquiry to follow-up, identifying points of friction and success.">
+                            <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                        </Tooltip>
+                    </div>
                     <h3 className="font-bold text-lg text-primary">{journey.title}</h3>
                     <p className="text-sm text-muted-foreground mt-2 flex-grow">{journey.description}</p>
                     <div className="mt-6 pt-4 border-t border-border space-y-2 text-sm">

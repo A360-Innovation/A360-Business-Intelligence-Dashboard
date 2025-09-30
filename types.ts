@@ -1,5 +1,6 @@
 
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts';
+
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -222,5 +223,19 @@ export interface Prompt {
     title: string;
     description: string;
     prompt: string;
-    placeholders?: string[];
+}
+
+// Types for Settings Page
+export interface User {
+    id: number;
+    name: string;
+    email: string;
+    avatarUrl: string;
+    role: 'Admin' | 'Practitioner' | 'Manager';
+    status: 'Active' | 'Pending';
+}
+
+export interface ClinicSettings {
+    name: string;
+    website: string;
 }
