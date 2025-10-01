@@ -9,6 +9,15 @@ import { Button } from '../components/ui/button';
 
 const podcasts: Podcast[] = [
   {
+    id: 5,
+    title: "Decoding the $847 Question: Turning Objections into Opportunities",
+    date: "September 9, 2024",
+    duration: "9:55",
+    summary: "A deep dive into handling specific, high-stakes cost objections. Learn how to reframe value and guide patients toward a confident 'yes'.",
+    audioUrl: "https://gjnumzwkahtlvaliwljm.supabase.co/storage/v1/object/public/podcasts/objection_handling/20251001_181305_25dab26d.mp3",
+    imageUrl: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&q=80"
+  },
+  {
     id: 1,
     title: "Week 35: Mastering Objection Handling",
     date: "September 2, 2024",
