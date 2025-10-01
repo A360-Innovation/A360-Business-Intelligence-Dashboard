@@ -20,8 +20,9 @@ import ExpandedPlayer from './components/ExpandedPlayer';
 import { cn } from './lib/utils';
 import { Menu, Search, Bell, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from './components/ui/button';
+import LoginPage from './pages/LoginPage';
 
-const AppContent: React.FC = () => {
+const AuthenticatedApp: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { currentPodcast } = useContext(PlayerContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -48,6 +49,7 @@ const AppContent: React.FC = () => {
         setCurrentPage={setCurrentPage}
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
+        onLogout={onLogout}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex items-center justify-between h-[70px] px-6 border-b border-border bg-card flex-shrink-0">
@@ -104,9 +106,15 @@ const AppContent: React.FC = () => {
 
 
 const App: React.FC = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  }
+
   return (
     <PlayerProvider>
-      <AppContent />
+      <AuthenticatedApp onLogout={() => setIsAuthenticated(false)} />
     </PlayerProvider>
   );
 };

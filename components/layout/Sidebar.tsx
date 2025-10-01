@@ -3,13 +3,14 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe, Target, BookText, Settings, X } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe, Target, BookText, Settings, X, LogOut } from 'lucide-react';
 
 interface SidebarProps {
   currentPage: Page;
   setCurrentPage: (page: Page) => void;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
+  onLogout: () => void;
 }
 
 const categorizedNavItems = [
@@ -38,7 +39,7 @@ const categorizedNavItems = [
 
 const settingsNavItem = { id: 'settings', label: 'Settings', icon: Settings };
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, setIsOpen }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, setIsOpen, onLogout }) => {
   const handleLinkClick = (page: Page) => {
     setCurrentPage(page);
     setIsOpen(false); // Close sidebar on navigation on mobile
@@ -115,7 +116,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
           ))}
         </nav>
         
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border space-y-1">
            <a
               id={`nav-item-${settingsNavItem.id}`}
               key={settingsNavItem.id}
@@ -130,6 +131,15 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
             >
               <settingsNavItem.icon className="mr-3 h-5 w-5" />
               {settingsNavItem.label}
+            </a>
+            <a
+              id="nav-item-logout"
+              href="#"
+              onClick={(e) => { e.preventDefault(); onLogout(); }}
+              className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+            >
+              <LogOut className="mr-3 h-5 w-5" />
+              <span>Logout</span>
             </a>
         </div>
       </aside>
