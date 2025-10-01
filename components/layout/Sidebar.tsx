@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
@@ -66,7 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
       >
         <div className="h-[70px] px-4 border-b border-border flex justify-between items-center">
           <div className="flex items-center">
-            <img src="https://ik.imagekit.io/0fheaxmfc/Main%20Logo.png?updatedAt=1754492000386" alt="Aesthetics360 Logo" className="h-8 w-auto" />
+            <img src="https://ik.imagekit.io/0fheaxmfc/Main%20Logo.png?updatedAt=1754492000386" alt="Aesthetics360 Logo" className="h-10 w-auto" />
           </div>
           <button 
             onClick={() => setIsOpen(false)}
