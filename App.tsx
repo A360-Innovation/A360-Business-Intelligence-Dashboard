@@ -1,5 +1,4 @@
 
-
 import React, { useState, useContext } from 'react';
 import { Page } from './types';
 import Sidebar from './components/layout/Sidebar';
@@ -17,6 +16,7 @@ import PromptsPage from './pages/PromptsPage';
 import SettingsPage from './pages/SettingsPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
+import ExpandedPlayer from './components/ExpandedPlayer';
 import { cn } from './lib/utils';
 import { Menu, Search, Bell, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from './components/ui/button';
@@ -96,6 +96,7 @@ const AppContent: React.FC = () => {
           {currentPage === 'settings' && <SettingsPage />}
         </main>
         {currentPodcast && <Player />}
+        <ExpandedPlayer />
       </div>
     </div>
   );

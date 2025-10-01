@@ -1,7 +1,7 @@
 
 import React, { useContext, useMemo } from 'react';
 import { PlayerContext } from '../contexts/PlayerContext';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronUp } from 'lucide-react';
 import { Button } from './ui/button';
 
 const formatTime = (seconds: number) => {
@@ -22,6 +22,7 @@ const Player: React.FC = () => {
         seek,
         setVolume,
         volume,
+        toggleExpanded,
     } = useContext(PlayerContext);
     
     const progressPercentage = useMemo(() => (duration > 0 ? (progress / duration) * 100 : 0), [progress, duration]);
@@ -32,10 +33,13 @@ const Player: React.FC = () => {
         <div className="fixed bottom-0 left-0 right-0 h-20 bg-card/95 backdrop-blur-sm border-t border-border z-50">
             <div className="flex items-center justify-between h-full px-4 sm:px-6">
                 {/* Podcast Info */}
-                <div className="flex items-center gap-3 w-1/4">
+                <div 
+                    className="flex items-center gap-3 w-1/4 cursor-pointer group"
+                    onClick={toggleExpanded}
+                >
                     <img src={currentPodcast.imageUrl} alt={currentPodcast.title} className="h-12 w-12 rounded-md object-cover" />
                     <div>
-                        <p className="font-semibold text-foreground truncate">{currentPodcast.title}</p>
+                        <p className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">{currentPodcast.title}</p>
                         <p className="text-xs text-muted-foreground">{currentPodcast.date}</p>
                     </div>
                 </div>
@@ -52,7 +56,7 @@ const Player: React.FC = () => {
                             className="h-10 w-10 rounded-full"
                             onClick={togglePlayPause}
                         >
-                            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+                            {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5 fill-current" />}
                         </Button>
                         <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full" disabled>
                             <SkipForward className="h-4 w-4" />
@@ -90,6 +94,9 @@ const Player: React.FC = () => {
                       onChange={(e) => setVolume(parseFloat(e.target.value))}
                       className="w-24 h-1 accent-primary bg-secondary rounded-full appearance-none cursor-pointer"
                     />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={toggleExpanded}>
+                        <ChevronUp className="h-4 w-4" />
+                    </Button>
                 </div>
             </div>
         </div>

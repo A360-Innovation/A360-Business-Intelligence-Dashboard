@@ -12,6 +12,8 @@ interface PlayerContextType {
   seek: (time: number) => void;
   setVolume: (volume: number) => void;
   volume: number;
+  isExpanded: boolean;
+  toggleExpanded: () => void;
 }
 
 export const PlayerContext = createContext<PlayerContextType>({
@@ -24,6 +26,8 @@ export const PlayerContext = createContext<PlayerContextType>({
   seek: () => {},
   setVolume: () => {},
   volume: 1,
+  isExpanded: false,
+  toggleExpanded: () => {},
 });
 
 interface PlayerProviderProps {
@@ -36,6 +40,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolumeState] = useState(1);
+  const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // This effect is the single source of truth for imperatively controlling the audio element.
@@ -84,8 +89,13 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
     }
   }, []);
 
+  const toggleExpanded = useCallback(() => {
+    setIsExpanded(prev => !prev);
+  }, []);
+
+
   return (
-    <PlayerContext.Provider value={{ currentPodcast, isPlaying, progress, duration, playPodcast, togglePlayPause, seek, setVolume, volume }}>
+    <PlayerContext.Provider value={{ currentPodcast, isPlaying, progress, duration, playPodcast, togglePlayPause, seek, setVolume, volume, isExpanded, toggleExpanded }}>
       {children}
       {currentPodcast && (
         <audio 
