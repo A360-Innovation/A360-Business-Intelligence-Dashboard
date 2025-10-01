@@ -14,50 +14,108 @@ interface NarrativePaneProps {
 }
 
 const NarrativePane: React.FC<NarrativePaneProps> = ({ isOpen, title, content, onClose }) => {
-  // Fix for common markdown formatting issues from API responses
   const formatContent = (c: string): string => {
-    if (c === 'loading') {
+    if (!c || c === 'loading') {
       return c;
     }
   
-    let formattedText = c;
-
-    // Specific formatting for "Opportunity Snapshot"
-    if (formattedText.includes('Opportunity Snapshot')) {
-      // Main Headers
-      formattedText = formattedText
-        .replace(/Opportunity Snapshot:/g, '## Opportunity Snapshot')
-        .replace(/Ranked Opportunities:/g, '### Ranked Opportunities');
-      
-      // Numbered list for each opportunity
-      formattedText = formattedText.replace(/(\d+)\. (Product\/Service:)/g, '\n\n$1. **$2**');
-      
-      // Key-value pairs within each opportunity
-      const labels = [
-        "Relevance", "Consultation trigger", "Introduction script",
-        "Clinical justification", "Frequency missed", "Revenue impact",
-        "Success indicators"
-      ];
-      
-      labels.forEach(label => {
-        const regex = new RegExp(`(\\*)?\\s*(${label}):`, 'gi');
-        formattedText = formattedText.replace(regex, '\n- **$2:**');
-      });
-      
-      return formattedText;
+    let text = c;
+    let sources: string[] = [];
+  
+    // --- Phase 1: Deep Cleaning & Source Extraction ---
+    // Unified regex to capture UUIDs from various formats like [t:...], (t:...), Int:...
+    // It also handles both standard hyphens and en-dashes (–).
+    const allEvidenceRegex = /(?:\[t:|\(t:|\bInt:)([a-f0-9-–]+)/g;
+    
+    // Extract all matching IDs into the sources array
+    const matches = Array.from(text.matchAll(allEvidenceRegex));
+    if (matches.length > 0) {
+      sources = matches.map(match => match[1]);
     }
 
-    // Default formatting for other content (e.g., fixing headings)
-    return c.split('\n').map(line => {
-        const trimmedLine = line.trimStart();
-        const match = trimmedLine.match(/^(#+)(.*)/);
-        if (match) {
-            const hashes = match[1];
-            const contentText = match[2].trim();
-            return `${hashes} ${contentText}`;
+    // Now, remove all known evidence patterns from the text to clean it up.
+    // This is done separately to robustly handle variations in surrounding characters.
+    text = text.replace(/\[t:[a-f0-9-–]+\]/g, '');
+    text = text.replace(/\(t:[a-f0-9-–]+\)/g, '');
+    text = text.replace(/\bInt:[a-f0-9-–]+\b/g, '');
+    
+    text = text.replace(/Group\)Patients/g, 'Group) Patients');
+  
+    // --- Phase 2: Intelligent Splitting ---
+    // Fix run-on words (e.g., "end.Start" -> "end. Start")
+    text = text.replace(/([a-z0-9.,?"'\)])([A-Z])/g, '$1 $2');
+    text = text.replace(/([a-z0-9.,?"'\)])([A-Z])/g, '$1 $2'); // Run twice
+  
+    // Fix run-on numbered lists (e.g., "wrinkles.2. Volume Loss")
+    text = text.replace(/(\.)(\d+\.\s)/g, '$1\n\n$2');
+  
+    // Keywords that should start a new major section (heading)
+    const majorSectionKeywords = [
+        'Headline', 'Body', 'Opportunity Snapshot', 'Ranked Opportunities', 
+        'Ranked Concerns', 'Ranked List', 'Direct Answer', 'Red Flags to Avoid',
+        'Special Summer Offer', 'Call to Action', 'Hashtags',
+        'Summary of Key Patient Concerns'
+    ];
+    // Keywords that should be bullet points
+    const listItemKeywords = [
+        'Product/Service', 'Relevance', 'Consultation trigger', 'Introduction script', 
+        'Example from Data', 'Clinical justification', 'Frequency missed', 'Frequency', 
+        'Revenue impact', 'Evidence', 'Success indicators', 'Why it matters', 
+        'Micro-script solution', 'When to use', 'Impact', 'Should have said', 'Expected outcome'
+    ];
+  
+    // Insert newlines before keywords to create structure
+    const allKeywords = [...majorSectionKeywords, ...listItemKeywords];
+    const keywordRegex = new RegExp(`(?<!\n)\\s*(${allKeywords.join('|')})`, 'g');
+    text = text.replace(keywordRegex, '\n\n$1');
+  
+    // --- Phase 3: Markdown Conversion & Final Cleanup ---
+    // First, clean up all asterisks used incorrectly for emphasis or as separators.
+    text = text.replace(/\*\*(.*?)\*\*/g, '$1'); // Replace **Word** with just Word
+    text = text.replace(/\s*\*\s*/g, ' '); // " * " -> " "
+    text = text.replace(/\*$/gm, ''); // trailing * at end of line
+    text = text.replace(/\.\*/g, '.'); // .* -> .
+    text = text.replace(/:\*/g, ':'); // :* -> :
+    text = text.replace(/\* /g, ' '); // "* " -> " "
+    text = text.replace(/\*/g, ''); // Remove any remaining asterisks
+
+    // Now, apply correct Markdown formatting
+    text = text.split('\n').map(line => {
+        line = line.trim();
+        if (!line) return line;
+
+        // Convert major sections to headings
+        const majorKeywordMatch = majorSectionKeywords.find(kw => line.startsWith(kw));
+        if (majorKeywordMatch) {
+            const restOfLine = line.substring(majorKeywordMatch.length).replace(/^:\s*/, '').trim();
+            return `### ${majorKeywordMatch}\n${restOfLine}`;
         }
+
+        // Convert list items to bullets with bolded keywords
+        const listItemKeywordMatch = listItemKeywords.find(kw => line.startsWith(kw));
+        if (listItemKeywordMatch) {
+            const restOfLine = line.substring(listItemKeywordMatch.length).replace(/^:\s*/, '').trim();
+            return `\n- **${listItemKeywordMatch}:** ${restOfLine}`;
+        }
+        
+        // Handle numbered lists that might have been missed
+        if (line.match(/^\d+\.\s/)) {
+            return `\n${line}`;
+        }
+
         return line;
     }).join('\n');
+  
+    // --- Phase 4: Final Polishing ---
+    text = text.replace(/\n{3,}/g, '\n\n').trim(); // Collapse extra newlines
+    
+    // --- Phase 5: Append Sources ---
+    if (sources.length > 0) {
+        const uniqueSources = [...new Set(sources)];
+        text += `\n\n### Sources\n${uniqueSources.map(s => `- \`${s}\``).join('\n')}`;
+    }
+
+    return text;
   };
 
   const formattedContent = formatContent(content);

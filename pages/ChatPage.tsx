@@ -99,67 +99,93 @@ const WelcomeScreen: React.FC<{ onSendMessage: (prompt: string) => void; isLoadi
 
 
 // --- Chat View Components ---
-const formatContent = (text: string): string => {
-    if (!text) return '';
-    let formatted = text;
-
-    // 1. Initial cleanup of metadata and artifacts
-    const metadataMatch = formatted.match(/^\(?"?\{.*\}\)?"?\s*(Direct Answer)?\s*/i);
-    if (metadataMatch) {
-        formatted = formatted.substring(metadataMatch[0].length);
+const formatContent = (c: string): string => {
+    if (!c || c === 'loading') {
+      return c;
     }
-    formatted = formatted.replace(/\s*"?\[t:[a-f0-9-]+\]"?\s*,?/gi, '');
+  
+    let text = c;
+    let sources: string[] = [];
+  
+    // --- Phase 1: Deep Cleaning & Source Extraction ---
+    const allEvidenceRegex = /(?:\[t:|\(t:|\bInt:)([a-f0-9-–]+)/g;
     
-    // 2. Add structural breaks to fix run-on text
-    // Break after punctuation followed by an uppercase letter (new sentence)
-    formatted = formatted.replace(/([.?!])([A-Z])/g, '$1\n\n$2');
-    // Break before a numbered list item
-    formatted = formatted.replace(/(\S)(\d+\.\s)/g, '$1\n\n$2');
-    // Break before a keyword that is likely a new section/list item
-    const keywordsForBreaks = [
-        'Headline', 'Body', 'Melasma', 'Sun Spots & Age Spots', 'Post-Inflammatory Hyperpigmentation', 
-        'Uneven Skin Tone', 'Advanced Laser Treatments', 'Medical-Grade Peels', 
-        'Targeted Topical Treatments', 'Diamond Glow® Facial', 'Why treat pigmentation now', 
-        'Prevent Further Damage', 'Achieve Your Best Summer Skin', 'Long-Term Results', 
-        'Special Offer', 'Frequency', 'Evidence', 'Impact', 'Why it matters', 'Micro-script solution',
-        'When to use', 'Relevance', 'Consultation trigger', 'Introduction script',
-        'Clinical justification', 'Frequency missed', 'Revenue impact', 'Success indicators',
-        'Ranked Concerns', 'Ranked Opportunities'
+    const matches = Array.from(text.matchAll(allEvidenceRegex));
+    if (matches.length > 0) {
+      sources = matches.map(match => match[1]);
+    }
+
+    text = text.replace(/\[t:[a-f0-9-–]+\]/g, '');
+    text = text.replace(/\(t:[a-f0-9-–]+\)/g, '');
+    text = text.replace(/\bInt:[a-f0-9-–]+\b/g, '');
+    
+    text = text.replace(/Group\)Patients/g, 'Group) Patients');
+  
+    // --- Phase 2: Intelligent Splitting ---
+    text = text.replace(/([a-z0-9.,?"'\)])([A-Z])/g, '$1 $2');
+    text = text.replace(/([a-z0-9.,?"'\)])([A-Z])/g, '$1 $2');
+  
+    text = text.replace(/(\.)(\d+\.\s)/g, '$1\n\n$2');
+  
+    const majorSectionKeywords = [
+        'Headline', 'Body', 'Opportunity Snapshot', 'Ranked Opportunities', 
+        'Ranked Concerns', 'Ranked List', 'Direct Answer', 'Red Flags to Avoid',
+        'Special Summer Offer', 'Call to Action', 'Hashtags',
+        'Summary of Key Patient Concerns'
     ];
-    const breakRegex = new RegExp(`(\\w)(${keywordsForBreaks.join('|')})`, 'g');
-    formatted = formatted.replace(breakRegex, '$1\n\n$2');
-
-
-    // 3. Apply Markdown formatting
-    // Bold keywords that end with a colon
-    const keywordsForBold = [...keywordsForBreaks, "Are you struggling with"];
-    const boldRegex = new RegExp(`^\\s*(${keywordsForBold.join('|')}):`, 'gm');
-    formatted = formatted.replace(boldRegex, '**$1:**');
-    
-    // Handle list-like keywords that should be bullet points
-    const bulletKeywords = [
-        "Frequency", "Evidence", "Impact", "Why it matters", "Micro-script solution",
-        "When to use", "Relevance", "Consultation trigger", "Introduction script",
-        "Clinical justification", "Frequency missed", "Revenue impact", "Success indicators"
+    const listItemKeywords = [
+        'Product/Service', 'Relevance', 'Consultation trigger', 'Introduction script', 
+        'Example from Data', 'Clinical justification', 'Frequency missed', 'Frequency', 
+        'Revenue impact', 'Evidence', 'Success indicators', 'Why it matters', 
+        'Micro-script solution', 'When to use', 'Impact', 'Should have said', 'Expected outcome'
     ];
-    const bulletRegex = new RegExp(`^\\s*(${bulletKeywords.join('|')}):`, 'gm');
-    formatted = formatted.replace(bulletRegex, '- **$1:**');
+  
+    const allKeywords = [...majorSectionKeywords, ...listItemKeywords];
+    const keywordRegex = new RegExp(`(?<!\n)\\s*(${allKeywords.join('|')})`, 'g');
+    text = text.replace(keywordRegex, '\n\n$1');
+  
+    // --- Phase 3: Markdown Conversion & Final Cleanup ---
+    text = text.replace(/\*\*(.*?)\*\*/g, '$1');
+    text = text.replace(/\s*\*\s*/g, ' ');
+    text = text.replace(/\*$/gm, '');
+    text = text.replace(/\.\*/g, '.');
+    text = text.replace(/:\*/g, ':');
+    text = text.replace(/\* /g, ' ');
+    text = text.replace(/\*/g, '');
 
-    // Make main headers larger
-    formatted = formatted.replace(/^(Summary of .*|Ranked Concerns|Ranked Opportunities|Headline)/gm, '### $1');
+    text = text.split('\n').map(line => {
+        line = line.trim();
+        if (!line) return line;
+
+        const majorKeywordMatch = majorSectionKeywords.find(kw => line.startsWith(kw));
+        if (majorKeywordMatch) {
+            const restOfLine = line.substring(majorKeywordMatch.length).replace(/^:\s*/, '').trim();
+            return `### ${majorKeywordMatch}\n${restOfLine}`;
+        }
+
+        const listItemKeywordMatch = listItemKeywords.find(kw => line.startsWith(kw));
+        if (listItemKeywordMatch) {
+            const restOfLine = line.substring(listItemKeywordMatch.length).replace(/^:\s*/, '').trim();
+            return `\n- **${listItemKeywordMatch}:** ${restOfLine}`;
+        }
+        
+        if (line.match(/^\d+\.\s/)) {
+            return `\n${line}`;
+        }
+
+        return line;
+    }).join('\n');
+  
+    // --- Phase 4: Final Polishing ---
+    text = text.replace(/\n{3,}/g, '\n\n').trim();
     
+    // --- Phase 5: Append Sources ---
+    if (sources.length > 0) {
+        const uniqueSources = [...new Set(sources)];
+        text += `\n\n### Sources\n${uniqueSources.map(s => `- \`${s}\``).join('\n')}`;
+    }
 
-    // 4. Final cleanup
-    // Clean up multiple asterisks used as separators
-    formatted = formatted.replace(/\*{3,}/g, '\n\n');
-    // Remove any stray single asterisks that aren't part of a bold tag
-    formatted = formatted.replace(/(?<!\*)\*(?!\*)/g, '');
-    // Remove bad bolding like "**1."
-    formatted = formatted.replace(/^\s*\*\*(\d+\.\s)/gm, '$1');
-    // Normalize newlines to prevent excessive spacing
-    formatted = formatted.replace(/\n{3,}/g, '\n\n');
-
-    return formatted.trim();
+    return text;
 };
 
 const FormattedResponse: React.FC<{ content: string }> = ({ content }) => {
@@ -210,7 +236,13 @@ const ChatView: React.FC<{ messages: ChatMessage[]; messagesEndRef: React.RefObj
 };
 
 // --- Chat Footer Component ---
-const ChatFooter: React.FC<{ onSendMessage: (p: string) => void; isLoading: boolean; }> = ({ onSendMessage, isLoading }) => {
+interface ChatFooterProps {
+    onSendMessage: (p: string) => void;
+    isLoading: boolean;
+    showStarters: boolean;
+}
+
+const ChatFooter: React.FC<ChatFooterProps> = ({ onSendMessage, isLoading, showStarters }) => {
     const { t } = useTranslation();
     const [input, setInput] = useState('');
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -262,22 +294,14 @@ const ChatFooter: React.FC<{ onSendMessage: (p: string) => void; isLoading: bool
                            {isLoading ? <div className="w-5 h-5 border-2 border-primary-foreground/50 border-t-primary-foreground rounded-full animate-spin"></div> : <Icons.ArrowUpIcon className="h-5 w-5"/>}
                         </Button>
                     </div>
-                    <div className="flex justify-between items-center px-3 pb-2">
-                        <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="sm" className="!p-2"><Icons.PaperClipIcon className="h-5 w-5" /></Button>
-                            <Button variant="ghost" size="sm" className="!p-2"><Icons.PhotographIcon className="h-5 w-5" /></Button>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <Button variant="secondary" size="sm"><Icons.SquarePenIcon className="h-5 w-5" /> {t('aiCenter.promptLibrary')}</Button>
-                            <Button variant="secondary" size="sm"><Icons.SparklesIcon className="h-5 w-5" /> {t('aiCenter.improvePrompt')}</Button>
-                        </div>
+                </div>
+                {showStarters && (
+                    <div className="flex items-center justify-center gap-2">
+                        {[t('aiCenter.starter1'), t('aiCenter.starter2'), t('aiCenter.starter3')].map(prompt => (
+                            <button key={prompt} onClick={() => onSendMessage(prompt)} disabled={isLoading} className="px-3 py-1.5 bg-secondary/50 backdrop-blur-sm border border-border rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed">{prompt}</button>
+                        ))}
                     </div>
-                </div>
-                <div className="flex items-center justify-center gap-2">
-                    {[t('aiCenter.starter1'), t('aiCenter.starter2'), t('aiCenter.starter3')].map(prompt => (
-                        <button key={prompt} onClick={() => onSendMessage(prompt)} disabled={isLoading} className="px-3 py-1.5 bg-secondary/50 backdrop-blur-sm border border-border rounded-lg text-sm font-medium text-muted-foreground hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed">{prompt}</button>
-                    ))}
-                </div>
+                )}
             </div>
         </footer>
     );
@@ -436,7 +460,7 @@ const ChatPage: React.FC = () => {
                     )}
                 </main>
                  <div className="sticky bottom-0 w-full flex justify-center">
-                    <ChatFooter onSendMessage={handleSendMessage} isLoading={isLoading} />
+                    <ChatFooter onSendMessage={handleSendMessage} isLoading={isLoading} showStarters={messages.length === 0} />
                 </div>
             </div>
         </div>
