@@ -1,27 +1,27 @@
 
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Timeframe, NarrativePaneInfo } from '../types';
+import { NarrativePaneInfo } from '../types';
 import MetricCard from '../components/MetricCard';
 import ConcernsChart from '../components/ConcernsChart';
 import TopProcedures from '../components/TopProcedures';
 import TreatmentTrendsChart from '../components/TreatmentTrendsChart';
 import PatientExperienceChart from '../components/PatientExperienceChart';
 import WorkflowQuality from '../components/WorkflowQuality';
-import MarketingOpportunities from '../components/MarketingOpportunities';
+import DemographicsChart from '../components/DemographicsChart';
+import SeasonalTrends from '../components/SeasonalTrends';
 import SalesExcellence from '../components/SalesExcellence';
 import AnalysisFields from '../components/AnalysisFields';
 import NarrativePane from '../components/NarrativePane';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
-import { ChevronDown, HelpCircle } from 'lucide-react';
+import { Download, Plus, HelpCircle } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
 
 declare const Shepherd: any;
 
 const DashboardPage: React.FC = () => {
-  const [timeframe, setTimeframe] = useState<Timeframe>('Monthly');
   const [narrativePane, setNarrativePane] = useState<NarrativePaneInfo>({
     isOpen: false,
     title: '',
@@ -62,19 +62,11 @@ const DashboardPage: React.FC = () => {
         attachTo: { element: '#sidebar', on: 'right' },
         buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
     });
-    
-    tour.addStep({
-        id: 'timeframe',
-        title: 'Timeframe Selection',
-        text: 'Easily switch between Monthly and Weekly views to see data from different periods.',
-        attachTo: { element: '#timeframe-switcher', on: 'bottom' },
-        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
-    });
 
     tour.addStep({
         id: 'metrics',
         title: 'Key Performance Indicators (KPIs)',
-        text: 'These cards show your most important metrics at a glance. Click any card to open a detailed, AI-generated analysis.',
+        text: 'These cards show your most important metrics at a glance. Click the "..." icon on any card to open a detailed, AI-generated analysis.',
         attachTo: { element: '#metric-cards-grid', on: 'bottom' },
         buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
     });
@@ -84,14 +76,6 @@ const DashboardPage: React.FC = () => {
         title: 'Interactive Charts',
         text: 'Visualizations like this "Patient Concerns" chart are interactive. Click on a slice to drill down for more specific data.',
         attachTo: { element: '#concerns-chart-card', on: 'bottom' },
-        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
-    });
-
-    tour.addStep({
-        id: 'chat',
-        title: 'A360 Chat',
-        text: 'Have a specific question? Use our AI-powered chat to query your clinic data using natural language.',
-        attachTo: { element: '#nav-item-chat', on: 'right' },
         buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Finish' }]
     });
 
@@ -125,14 +109,9 @@ const DashboardPage: React.FC = () => {
 
     const titleToEndpointSlug: { [key: string]: string } = {
         'Total Transcripts': 'total-transcripts',
-        'Overall Satisfaction': 'overall-satisfaction',
-        'Education Effectiveness': 'education-effectiveness',
-        'Top Procedures': 'top-procedures',
-        // Fallbacks for titles that might come from older mock data
-        'Total Transcripts This Month': 'total-transcripts',
-        'Overall Satisfaction Score': 'overall-satisfaction',
-        'Top Procedures Recommended': 'top-procedures',
-        'Total Transcripts This Week': 'total-transcripts',
+        'Satisfaction Score': 'overall-satisfaction',
+        'Education Score': 'education-effectiveness',
+        'Conversion Rate': 'top-procedures', // Placeholder
     };
     
     const endpointSlug = titleToEndpointSlug[title];
@@ -193,45 +172,27 @@ const DashboardPage: React.FC = () => {
     setNarrativePane({ ...narrativePane, isOpen: false });
   };
 
-  const DashboardHeader = () => (
-    <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+  const DashboardSubHeader = () => (
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Insights Dashboard</h1>
-        <p className="text-muted-foreground mt-1">Real-time overview of consultation data</p>
+        <h2 className="text-lg font-semibold text-foreground">Clinic Overview</h2>
+        <p className="text-sm text-muted-foreground mt-1">Key metrics and trends from the last 30 days.</p>
       </div>
-      <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-        <div id="timeframe-switcher" className="flex items-center bg-secondary rounded-lg p-1 text-sm font-medium">
-          <Button
-            onClick={() => setTimeframe('Monthly')}
-            variant="ghost"
-            size="sm"
-            className={cn("w-20", timeframe === 'Monthly' && 'bg-card text-card-foreground shadow-sm')}
-          >
-            Monthly
-          </Button>
-          <Button
-            onClick={() => setTimeframe('Weekly')}
-            variant="ghost"
-            size="sm"
-            className={cn("w-20", timeframe === 'Weekly' && 'bg-card text-card-foreground shadow-sm')}
-          >
-            Weekly
-          </Button>
-        </div>
-        <div className="relative">
-          <select className="appearance-none bg-card border border-input rounded-md shadow-sm h-9 pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ring">
-            <option>Last 4 months</option>
-            {/* <option>Last 60 Days</option>
-            <option>Last 90 Days</option> */}
-          </select>
-          <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        </div>
+      <div className="flex items-center space-x-2 mt-4 sm:mt-0">
         <Button variant="outline" size="sm" onClick={() => tourRef.current?.start()} className="h-9">
             <HelpCircle className="h-4 w-4 mr-2"/>
             Take a tour
         </Button>
+        <Button variant="outline" size="sm" className="h-9">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+        </Button>
+        <Button size="sm" className="h-9">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Widget
+        </Button>
       </div>
-    </header>
+    </div>
   );
 
   if (loading) {
@@ -248,7 +209,7 @@ const DashboardPage: React.FC = () => {
   if (error || !data) {
     return (
       <div className="p-4 sm:p-6 lg:p-8">
-        <DashboardHeader />
+        <DashboardSubHeader />
         <div className="flex items-center justify-center h-[calc(100vh-250px)]">
             <div className="text-center p-6 bg-destructive/10 border border-destructive rounded-lg">
               <h2 className="text-lg font-semibold text-destructive">Failed to Load Dashboard</h2>
@@ -261,9 +222,9 @@ const DashboardPage: React.FC = () => {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8">
-      <DashboardHeader />
-      
-      <main className="mt-6 space-y-6">
+      <main className="space-y-6">
+        <DashboardSubHeader />
+
         {/* High-Level Metrics */}
         <div id="metric-cards-grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {data.highLevelMetrics.map((metric) => (
@@ -271,7 +232,8 @@ const DashboardPage: React.FC = () => {
               key={metric.title}
               title={metric.title}
               value={metric.value}
-              tooltipText="This metric is calculated based on an aggregation of all consultation transcripts for the selected time period."
+              subtitle={metric.subtitle}
+              icon={metric.icon}
               onClick={() => handleOpenNarrative(metric.title)}
             />
           ))}
@@ -310,25 +272,24 @@ const DashboardPage: React.FC = () => {
             </div>
         </div>
 
-        {/* Growth Opportunities & Sales */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div className="lg:col-span-8">
-                <MarketingOpportunities
-                    demographicsData={data.demographics}
-                    seasonalData={data.seasonalTrends}
-                    onItemClick={(title) => handleOpenNarrative(title)}
-                />
-            </div>
-            <div className="lg:col-span-4">
-                <SalesExcellence 
-                    scores={data.salesExcellence}
-                    onScoreClick={(skill) => handleOpenNarrative(`Sales Excellence: ${skill}`)}
-                />
-            </div>
+        {/* Growth Opportunities */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DemographicsChart
+                demographicsData={data.demographics}
+                onItemClick={(title) => handleOpenNarrative(title)}
+            />
+            <SeasonalTrends
+                seasonalData={data.seasonalTrends}
+                onItemClick={(title) => handleOpenNarrative(title)}
+            />
         </div>
 
-        {/* Qualitative Insights */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Qualitative Insights & Sales */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <SalesExcellence 
+                scores={data.salesExcellence}
+                onScoreClick={(skill) => handleOpenNarrative(`Sales Excellence: ${skill}`)}
+            />
             <WorkflowQuality 
                 data={data.workflowQuality}
                 onItemClick={(title) => handleOpenNarrative(`Workflow Quality: ${title}`)}

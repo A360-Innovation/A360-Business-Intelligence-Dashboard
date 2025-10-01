@@ -8,13 +8,7 @@ interface TreatmentTrendsChartProps {
   onBarClick: (payload: any) => void;
 }
 
-const gradientColors = [
-  'hsl(var(--primary))', 
-  'hsl(212, 56%, 70%)', 
-  'hsl(212, 56%, 80%)', 
-  'hsl(212, 56%, 90%)', 
-  'hsl(212, 56%, 95%)'
-];
+const gradientColors = ['hsl(212, 33%, 49%)', 'hsl(212, 33%, 59%)', 'hsl(212, 33%, 69%)', 'hsl(211, 35%, 75%)', 'hsl(217, 33%, 86%)'];
 
 const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {

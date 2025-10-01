@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useOpportunitiesData } from '../hooks/useOpportunitiesData';
 import Loader from '../components/icons/Loader';
@@ -23,7 +24,7 @@ const OpportunitiesPage: React.FC = () => {
     return (
         <div className="p-4 sm:p-6 lg:p-8">
             <header className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Opportunities Hub</h1>
+                <h1 className="text-3xl font-bold text-foreground">Opportunities Hub</h1>
                 <p className="text-muted-foreground mt-1">Review key moments from consultations to refine your skills and strategies.</p>
             </header>
             

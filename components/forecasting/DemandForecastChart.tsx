@@ -38,7 +38,7 @@ const DemandForecastChart: React.FC<DemandForecastChartProps> = ({ data }) => {
             title="Predicted Treatment Demand (Next 6 Months)"
             tooltipText="Visualize the projected demand for key treatments over the next six months, based on historical data and predictive models."
         >
-            <div style={{ width: '100%', height: 350 }}>
+            <div style={{ width: '100%', height: 300 }}>
                 <ResponsiveContainer>
                     <AreaChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                         <defs>

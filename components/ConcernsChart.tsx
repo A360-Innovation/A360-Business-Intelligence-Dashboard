@@ -1,33 +1,13 @@
 import React, { useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Sector } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { Concern } from '../types';
 import DashboardCard from './DashboardCard';
 import { Button } from './ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { cn } from '../lib/utils';
 
-const COLORS = ['hsl(var(--primary))', 'hsl(212, 56%, 70%)', 'hsl(212, 56%, 80%)', 'hsl(212, 56%, 90%)'];
-const DRILLDOWN_COLORS = ['hsl(212, 58%, 45%)', 'hsl(212, 58%, 55%)', 'hsl(212, 58%, 65%)', 'hsl(212, 58%, 75%)'];
-
-// This is the custom shape for the hovered slice, creating a "pop-out" effect.
-const renderActiveShape = (props: any) => {
-  const { cx, cy, innerRadius, outerRadius, startAngle, endAngle, fill } = props;
-
-  return (
-    <g style={{ filter: 'drop-shadow(0px 4px 8px rgba(0,0,0,0.1))' }}>
-      <Sector
-        cx={cx}
-        cy={cy}
-        innerRadius={innerRadius}
-        outerRadius={outerRadius + 8} // Make the active sector slightly larger
-        startAngle={startAngle}
-        endAngle={endAngle}
-        fill={fill}
-        cornerRadius={5}
-      />
-    </g>
-  );
-};
+const COLORS = ['hsl(212, 33%, 49%)', 'hsl(211, 35%, 60%)', 'hsl(214, 32%, 74%)', 'hsl(217, 33%, 86%)'];
+const DRILLDOWN_COLORS = ['hsl(212, 33%, 39%)', 'hsl(212, 33%, 49%)', 'hsl(211, 35%, 60%)', 'hsl(214, 32%, 74%)'];
 
 // Fix: Define the props interface for the component.
 interface ConcernsChartProps {
@@ -85,8 +65,6 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                activeIndex={activeIndex ?? undefined}
-                activeShape={renderActiveShape}
                 data={activeData}
                 cx="50%"
                 cy="50%"
@@ -107,6 +85,8 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
                     fill={activeColors[index % activeColors.length]}
                     stroke="hsl(var(--card))"
                     strokeWidth={4}
+                    style={{ transition: 'opacity 0.2s' }}
+                    fillOpacity={activeIndex !== null && activeIndex !== index ? 0.3 : 1}
                   />
                 ))}
               </Pie>

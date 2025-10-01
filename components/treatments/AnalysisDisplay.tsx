@@ -14,9 +14,13 @@ interface AnalysisDisplayProps {
 }
 
 const concernColors: { [key: string]: string } = {
-    'Acne': '#547BA3', 'Pigmentation': '#7795B9', 'Scarring': '#9AB3D0',
-    'Wrinkles': '#BDD1E6', 'Texture': '#E0EEFA', 'Sagging': '#416288',
-    'Volume Loss': '#324D6A',
+    'Acne': 'hsl(212, 33%, 49%)',
+    'Pigmentation': 'hsl(211, 35%, 60%)',
+    'Scarring': 'hsl(214, 32%, 74%)',
+    'Wrinkles': 'hsl(212, 33%, 39%)',
+    'Texture': 'hsl(217, 33%, 86%)',
+    'Sagging': 'hsl(213, 33%, 32%)',
+    'Volume Loss': 'hsl(212, 31%, 28%)',
 };
 
 const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisData, demographicsData }) => {

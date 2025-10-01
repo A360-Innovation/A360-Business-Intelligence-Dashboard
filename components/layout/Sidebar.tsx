@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
@@ -16,23 +11,31 @@ interface SidebarProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-const navItems = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'opportunities', label: 'Opportunities', icon: Target },
-  { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
-  { id: 'prompts', label: 'Prompt Library', icon: BookText },
-  { id: 'podcasts', label: 'Podcasts', icon: Mic },
-  { id: 'practice', label: 'Practice Mode', icon: GraduationCap },
-  { id: 'treatments', label: 'Treatments', icon: Beaker },
-  { id: 'journey', label: 'Patient Journey', icon: Route },
-  { id: 'performance', label: 'Performance', icon: Users },
-  { id: 'forecasting', label: 'Forecasting', icon: TrendingUp },
-  { id: 'market', label: 'Market Intel', icon: Globe },
+const categorizedNavItems = [
+  {
+    category: 'Analytics',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { id: 'opportunities', label: 'Opportunities', icon: Target },
+      { id: 'treatments', label: 'Treatments', icon: Beaker },
+      { id: 'journey', label: 'Patient Journey', icon: Route },
+      { id: 'performance', label: 'Performance', icon: Users },
+      { id: 'forecasting', label: 'Forecasting', icon: TrendingUp },
+      { id: 'market', label: 'Market Intel', icon: Globe },
+    ]
+  },
+  {
+    category: 'AI Tools',
+    items: [
+      { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
+      { id: 'prompts', label: 'Prompt Library', icon: BookText },
+      { id: 'podcasts', label: 'Podcasts', icon: Mic },
+      { id: 'practice', label: 'Practice Mode', icon: GraduationCap },
+    ]
+  }
 ];
 
-const bottomNavItems = [
-    { id: 'settings', label: 'Settings', icon: Settings },
-];
+const settingsNavItem = { id: 'settings', label: 'Settings', icon: Settings };
 
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, setIsOpen }) => {
   const handleLinkClick = (page: Page) => {
@@ -61,7 +64,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="p-4 border-b border-border flex justify-between items-center">
+        <div className="h-[70px] px-4 border-b border-border flex justify-between items-center">
           <div className="flex items-center">
             <img src="https://ik.imagekit.io/0fheaxmfc/Main%20Logo.png?updatedAt=1754492000386" alt="Aesthetics360 Logo" className="h-8 w-auto" />
           </div>
@@ -74,66 +77,59 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
           </button>
         </div>
 
-        <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const isClickable = true;
-            const isActive = currentPage === item.id;
-            return (
-              <a
-                id={`nav-item-${item.id}`}
-                key={item.id}
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (isClickable) {
-                    handleLinkClick(item.id as Page);
-                  }
-                }}
-                className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                  isActive
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground",
-                  !isClickable && "opacity-50 cursor-not-allowed"
-                )}
-              >
-                <item.icon className="mr-3 h-4 w-4" />
-                {item.label}
-              </a>
-            );
-          })}
+        <nav className="flex-1 p-4 space-y-4 overflow-y-auto">
+          {categorizedNavItems.map((categoryGroup) => (
+            <div key={categoryGroup.category}>
+              <h3 className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{categoryGroup.category}</h3>
+              <div className="space-y-1">
+                {categoryGroup.items.map((item) => {
+                  const isClickable = true;
+                  const isActive = currentPage === item.id;
+                  return (
+                    <a
+                      id={`nav-item-${item.id}`}
+                      key={item.id}
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (isClickable) {
+                          handleLinkClick(item.id as Page);
+                        }
+                      }}
+                      className={cn(
+                        "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                        isActive
+                          ? "bg-secondary text-foreground font-semibold"
+                          : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground",
+                        !isClickable && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <item.icon className="mr-3 h-5 w-5" />
+                      {item.label}
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
         
-        <div className="p-2 border-t border-border">
-           {bottomNavItems.map((item) => {
-            const isActive = currentPage === item.id;
-            return (
-              <a
-                id={`nav-item-${item.id}`}
-                key={item.id}
-                href="#"
-                onClick={(e) => { e.preventDefault(); handleLinkClick(item.id as Page); }}
-                className={cn(
-                  "flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                  isActive
-                    ? "bg-secondary text-foreground"
-                    : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                )}
-              >
-                <item.icon className="mr-3 h-4 w-4" />
-                {item.label}
-              </a>
-            );
-          })}
-          <div className="flex items-center p-2 mt-2 border-t border-border">
-            <div className="w-8 h-8 rounded-full bg-destructive/20 text-destructive flex items-center justify-center font-bold">
-              K
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-semibold text-foreground">kate+demo</p>
-              <p className="text-xs text-muted-foreground">kate+demo@aesth...</p>
-            </div>
-          </div>
+        <div className="p-4 border-t border-border">
+           <a
+              id={`nav-item-${settingsNavItem.id}`}
+              key={settingsNavItem.id}
+              href="#"
+              onClick={(e) => { e.preventDefault(); handleLinkClick(settingsNavItem.id as Page); }}
+              className={cn(
+                "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                currentPage === settingsNavItem.id
+                  ? "bg-secondary text-foreground font-semibold"
+                  : "text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
+              )}
+            >
+              <settingsNavItem.icon className="mr-3 h-5 w-5" />
+              {settingsNavItem.label}
+            </a>
         </div>
       </aside>
     </>

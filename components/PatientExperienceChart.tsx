@@ -70,7 +70,7 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
                 // Fix: Correctly access the data payload from the 'props' object provided by recharts instead of the raw event target.
                 activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload), stroke: 'hsl(var(--primary))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
                 className="cursor-pointer"
-                style={{ filter: 'drop-shadow(0px 2px 4px hsl(var(--primary) / 0.3))' }}
+                style={{ filter: `drop-shadow(0 2px 4px hsl(var(--primary) / 0.4))` }}
             />
              <Area 
                 name="Education Effectiveness" 
@@ -83,7 +83,7 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
                 // Fix: Correctly access the data payload from the 'props' object provided by recharts instead of the raw event target.
                 activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload), stroke: 'hsl(var(--success))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
                 className="cursor-pointer"
-                style={{ filter: 'drop-shadow(0px 2px 4px hsl(var(--success) / 0.3))' }}
+                style={{ filter: `drop-shadow(0 2px 4px hsl(var(--success) / 0.4))` }}
             />
           </AreaChart>
         </ResponsiveContainer>

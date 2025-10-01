@@ -42,10 +42,10 @@ export const useDashboardData = () => {
 
                 // 1. Transform Summary -> highLevelMetrics
                 const highLevelMetrics: HighLevelMetric[] = [
-                    { title: "Total Transcripts", value: String(summaryData.total_transcripts) },
-                    { title: "Overall Satisfaction", value: `${summaryData.overall_satisfaction_pct}%` },
-                    { title: "Education Effectiveness", value: `${summaryData.education_effectiveness_pct}%` },
-                    { title: "Top Procedures", value: summaryData.top_procedures.map((p:string) => p.charAt(0).toUpperCase() + p.slice(1)).join(', ') },
+                    { title: "Total Transcripts", value: String(summaryData.total_transcripts), subtitle: "Consultations analyzed", icon: "FileText" },
+                    { title: "Satisfaction Score", value: `${summaryData.overall_satisfaction_pct}%`, subtitle: "Avg. patient feedback", icon: "Smile" },
+                    { title: "Education Score", value: `${summaryData.education_effectiveness_pct}%`, subtitle: "Patient comprehension", icon: "BookOpen" },
+                    { title: "Conversion Rate", value: "82%", subtitle: "+2% vs. last month", icon: "TrendingUp" }, // Using mock data for this metric
                 ];
 
                 // 2. Transform Concerns

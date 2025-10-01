@@ -3,10 +3,11 @@ import { DashboardData, Timeframe } from './types';
 
 const monthlyData: DashboardData = {
   highLevelMetrics: [
-    { title: "Total Transcripts This Month", value: "432" },
-    { title: "Overall Satisfaction Score", value: "92%" },
-    { title: "Education Effectiveness", value: "88%" },
-    { title: "Top Procedures Recommended", value: "Botox, Chemical Peel, IPL Photofacial" },
+    // Fix: Added missing 'subtitle' and 'icon' properties to align with HighLevelMetric type.
+    { title: "Total Transcripts This Month", value: "432", subtitle: "Consultations analyzed", icon: "FileText" },
+    { title: "Overall Satisfaction Score", value: "92%", subtitle: "Avg. patient feedback", icon: "Smile" },
+    { title: "Education Effectiveness", value: "88%", subtitle: "Patient comprehension", icon: "BookOpen" },
+    { title: "Top Procedures Recommended", value: "Botox, Chemical Peel, IPL Photofacial", subtitle: "Most frequent recommendations", icon: "TrendingUp" },
   ],
   concerns: [
     { name: 'Skin Pigmentation', value: 35, breakdown: [{ name: 'Melasma', value: 45 }, { name: 'Sunspots', value: 30 }, { name: 'PIH', value: 15 }, { name: 'Other', value: 10 }] },
@@ -75,10 +76,11 @@ const monthlyData: DashboardData = {
 const weeklyData: DashboardData = {
   ...monthlyData,
   highLevelMetrics: [
-    { title: "Total Transcripts This Week", value: "98" },
-    { title: "Overall Satisfaction Score", value: "94%" },
-    { title: "Education Effectiveness", value: "91%" },
-    { title: "Top Procedures Recommended", value: "Botox, Dermal Fillers, IPL Photofacial" },
+    // Fix: Added missing 'subtitle' and 'icon' properties to align with HighLevelMetric type.
+    { title: "Total Transcripts This Week", value: "98", subtitle: "Consultations analyzed", icon: "FileText" },
+    { title: "Overall Satisfaction Score", value: "94%", subtitle: "Avg. patient feedback", icon: "Smile" },
+    { title: "Education Effectiveness", value: "91%", subtitle: "Patient comprehension", icon: "BookOpen" },
+    { title: "Top Procedures Recommended", value: "Botox, Dermal Fillers, IPL Photofacial", subtitle: "Most frequent recommendations", icon: "TrendingUp" },
   ],
   concerns: [
     { name: 'Skin Pigmentation', value: 32, breakdown: [{ name: 'Melasma', value: 40 }, { name: 'Sunspots', value: 35 }, { name: 'PIH', value: 18 }, { name: 'Other', value: 7 }] },

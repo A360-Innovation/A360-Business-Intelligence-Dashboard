@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { mockClinicSettings, mockUsers } from '../data/settingsData';
 import DashboardCard from '../components/DashboardCard';
@@ -12,7 +13,7 @@ const SettingsPage: React.FC = () => {
     return (
         <div className="p-4 sm:p-6 lg:p-8">
             <header className="mb-6">
-                <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+                <h1 className="text-3xl font-bold text-foreground">Settings</h1>
                 <p className="text-muted-foreground mt-1">Manage your clinic settings and team members.</p>
             </header>
 

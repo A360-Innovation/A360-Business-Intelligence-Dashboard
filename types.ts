@@ -7,6 +7,8 @@ export type Timeframe = 'Monthly' | 'Weekly';
 export interface HighLevelMetric {
   title: string;
   value: string;
+  subtitle: string;
+  icon: string;
 }
 
 export interface Concern {

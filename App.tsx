@@ -18,7 +18,8 @@ import SettingsPage from './pages/SettingsPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import { cn } from './lib/utils';
-import { Menu } from 'lucide-react';
+import { Menu, Search, Bell, Settings as SettingsIcon } from 'lucide-react';
+import { Button } from './components/ui/button';
 
 const AppContent: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -49,7 +50,7 @@ const AppContent: React.FC = () => {
         setIsOpen={setIsSidebarOpen}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="flex items-center justify-between py-4 px-6 border-b border-border bg-card flex-shrink-0">
+        <header className="flex items-center justify-between h-[70px] px-6 border-b border-border bg-card flex-shrink-0">
           <div className="flex items-center">
             <button 
               onClick={() => setIsSidebarOpen(true)}
@@ -58,7 +59,26 @@ const AppContent: React.FC = () => {
             >
               <Menu className="h-5 w-5" />
             </button>
-            <h1 className="text-lg font-semibold text-foreground">{pageTitles[currentPage]}</h1>
+            <h1 className="text-xl font-bold text-foreground">{pageTitles[currentPage]}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search..."
+                className="w-64 bg-secondary border-none rounded-lg h-9 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+            <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
+                <Bell className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <Button variant="ghost" size="icon" className="rounded-full h-9 w-9" onClick={() => setCurrentPage('settings')}>
+                <SettingsIcon className="h-5 w-5 text-muted-foreground" />
+            </Button>
+            <div className="w-8 h-8 rounded-full bg-destructive/20 text-destructive flex items-center justify-center font-bold text-xs ml-2">
+              K
+            </div>
           </div>
         </header>
         <main className={cn("flex-1 overflow-y-auto bg-background", currentPodcast && "pb-24")}>

@@ -26,7 +26,7 @@ const ChatHistorySidebar: React.FC<{ isOpen: boolean; onClose: () => void }> = (
             isOpen ? 'w-[270px]' : 'w-0',
             "overflow-hidden"
         )}>
-            <div className="h-[70px] flex items-center justify-between p-4 border-b border-border flex-shrink-0">
+            <div className="h-[70px] flex items-center justify-between px-4 border-b border-border flex-shrink-0">
                 <div className="flex items-center gap-3">
                     <Logo className="h-8 w-8" />
                     <span className="font-bold text-foreground text-lg">Aesthetics360</span>
@@ -119,6 +119,12 @@ const formatContent = (c: string): string => {
     text = text.replace(/\(t:[a-f0-9-–]+\)/g, '');
     text = text.replace(/\bInt:[a-f0-9-–]+\b/g, '');
     
+    // Remove "Evidence:" blocks which contain raw data and are not meant for display.
+    text = text.replace(/\s*Evidence:.*?(?=\s*(?:Likely Root Cause:|Micro-script:)|$)/g, '');
+    
+    // Clean up stray numeric artifacts that appear on their own line.
+    text = text.replace(/^\s*\d+\.?\s*$/gm, '');
+
     text = text.replace(/Group\)Patients/g, 'Group) Patients');
   
     // --- Phase 2: Intelligent Splitting ---
@@ -276,7 +282,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSendMessage, isLoading, showS
     return (
         <footer className="w-full max-w-3xl mx-auto p-4 z-10 flex-shrink-0">
             <div className="space-y-3">
-                <div className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border shadow-lg flex flex-col transition-all duration-300">
+                <div className="bg-card/80 backdrop-blur-lg rounded-2xl border border-border flex flex-col transition-all duration-300">
                     {isBannerVisible && (
                         <div className="flex items-center justify-between p-3 bg-success/10 rounded-t-2xl border-b border-success/20">
                             <div className="flex items-center gap-3">
