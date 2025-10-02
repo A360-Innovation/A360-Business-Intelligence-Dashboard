@@ -141,63 +141,99 @@ const GeneratePodcastModal: React.FC<{
     const [isGenerating, setIsGenerating] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const [loadingMessage, setLoadingMessage] = useState("AI is warming up...");
+    const loadingMessages = [
+        "Analyzing recent consultations...",
+        "Identifying key topics and insights...",
+        "Writing a compelling script...",
+        "Generating narrator audio...",
+        "Mixing and mastering the episode...",
+        "Finalizing the podcast, almost there!",
+    ];
+
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval> | null = null;
+        if (isGenerating) {
+            setLoadingMessage(loadingMessages[0]);
+            let i = 1;
+            interval = setInterval(() => {
+                setLoadingMessage(loadingMessages[i % loadingMessages.length]);
+                i++;
+            }, 2500);
+        }
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [isGenerating]);
+
     const handleGenerate = async () => {
         setIsGenerating(true);
         setError(null);
         try {
             await onGenerate(selectedTopic);
+            onClose();
         } catch (e) {
             setError(e instanceof Error ? e.message : 'An unknown error occurred.');
-        } finally {
             setIsGenerating(false);
         }
     };
+    
+    useEffect(() => {
+        if (isOpen) {
+            setIsGenerating(false);
+            setError(null);
+            setSelectedTopic(podcastTopics[0].value);
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/60 backdrop-blur-sm" onClick={onClose}>
-            <div className="relative w-full max-w-lg bg-card rounded-xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-foreground">Generate New Podcast</h2>
-                    <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
-                        <X className="h-4 w-4" />
-                    </Button>
-                </div>
-                <p className="text-muted-foreground text-sm mb-4">Select a key topic from recent consultations to generate a new, personalized AI training podcast. This may take a few moments.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/60 backdrop-blur-sm" onClick={isGenerating ? undefined : onClose}>
+            <div className="relative w-full max-w-lg bg-card rounded-xl shadow-xl" onClick={(e) => e.stopPropagation()}>
+                {isGenerating ? (
+                    <div className="flex flex-col items-center justify-center p-8 gap-4 text-center h-64">
+                        <Loader />
+                        <h2 className="text-xl font-bold text-foreground">Crafting Your Podcast...</h2>
+                        <p className="text-muted-foreground transition-opacity duration-500">{loadingMessage}</p>
+                    </div>
+                ) : (
+                    <div className="p-6">
+                        <div className="flex justify-between items-center mb-4">
+                           <h2 className="text-xl font-bold text-foreground">Generate New Podcast</h2>
+                           <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full h-8 w-8">
+                               <X className="h-4 w-4" />
+                           </Button>
+                       </div>
+                       <p className="text-muted-foreground text-sm mb-4">Select a key topic from recent consultations to generate a new, personalized AI training podcast. This may take a few moments.</p>
 
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="topic-select" className="text-sm font-medium text-muted-foreground">Topic</label>
-                         <div className="relative mt-1">
-                            <select
-                                id="topic-select"
-                                value={selectedTopic}
-                                onChange={(e) => setSelectedTopic(e.target.value)}
-                                disabled={isGenerating}
-                                className="appearance-none w-full bg-secondary border border-transparent rounded-md h-9 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                            >
-                                {podcastTopics.map(topic => (
-                                    <option key={topic.value} value={topic.value}>{topic.label}</option>
-                                ))}
-                            </select>
-                            <ChevronsUpDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                        </div>
+                       <div className="space-y-4">
+                           <div>
+                               <label htmlFor="topic-select" className="text-sm font-medium text-muted-foreground">Topic</label>
+                                <div className="relative mt-1">
+                                   <select
+                                       id="topic-select"
+                                       value={selectedTopic}
+                                       onChange={(e) => setSelectedTopic(e.target.value)}
+                                       className="appearance-none w-full bg-secondary border border-transparent rounded-md h-9 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                   >
+                                       {podcastTopics.map(topic => (
+                                           <option key={topic.value} value={topic.value}>{topic.label}</option>
+                                       ))}
+                                   </select>
+                                   <ChevronsUpDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                               </div>
+                           </div>
+                           {error && <p className="text-sm text-center text-destructive p-2 bg-destructive/10 rounded-md">{error}</p>}
+                           <div className="flex justify-end gap-2 pt-2">
+                               <Button variant="ghost" onClick={onClose}>Cancel</Button>
+                               <Button onClick={handleGenerate}>
+                                   Generate Podcast
+                               </Button>
+                           </div>
+                       </div>
                     </div>
-                    {error && <p className="text-sm text-destructive">{error}</p>}
-                    <div className="flex justify-end gap-2 pt-2">
-                        <Button variant="ghost" onClick={onClose} disabled={isGenerating}>Cancel</Button>
-                        <Button onClick={handleGenerate} disabled={isGenerating}>
-                            {isGenerating ? (
-                                <>
-                                    <Loader /> <span className="ml-2">Generating...</span>
-                                </>
-                            ) : (
-                                'Generate Podcast'
-                            )}
-                        </Button>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );
@@ -249,12 +285,10 @@ const PodcastsPage: React.FC = () => {
                 const errorData = await response.json();
                 throw new Error(errorData.detail || 'Failed to generate podcast.');
             }
-            // Success
-            setIsModalOpen(false);
-            await fetchPodcasts(); // Refresh list
+            await fetchPodcasts();
         } catch (error) {
             console.error("Generation failed:", error);
-            throw error; // Re-throw to be caught by modal's error handler
+            throw error;
         }
     };
     
