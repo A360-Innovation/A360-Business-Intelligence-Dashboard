@@ -75,13 +75,14 @@ export interface NarrativePaneInfo {
 }
 
 export interface Podcast {
-  id: number;
+  id: string;
   title: string;
   date: string;
-  duration: string;
+  duration?: string;
   summary: string;
   audioUrl: string;
   imageUrl: string;
+  topic?: string;
 }
 
 export type JourneyEventType = 'Inquiry' | 'Consultation' | 'Objection' | 'Resolution' | 'Treatment' | 'Follow-up' | 'Satisfaction';
