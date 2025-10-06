@@ -1,0 +1,117 @@
+
+
+import { useState, useEffect } from 'react';
+import { TreatmentAnalysisData, TreatmentObjection, TreatmentCrossSell, TreatmentEducationData } from '../types';
+
+const API_BASE = 'https://rag-aesthetic-production.up.railway.app/treatments';
+
+export const useTreatmentAnalysis = (treatmentName: string | null) => {
+    const [analysisData, setAnalysisData] = useState<TreatmentAnalysisData | null>(null);
+    const [educationData, setEducationData] = useState<TreatmentEducationData | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!treatmentName) {
+            setAnalysisData(null);
+            setEducationData(null);
+            return;
+        }
+
+        const fetchAnalysisData = async () => {
+            setLoading(true);
+            setError(null);
+            
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(endDate.getMonth() - 3);
+
+            const formatDate = (date: Date) => date.toISOString().split('T')[0];
+            const start_date = formatDate(startDate);
+            const end_date = formatDate(endDate);
+            
+            const encodedTreatment = encodeURIComponent(treatmentName.toLowerCase());
+
+            try {
+                const endpoints = {
+                    analysis: `${API_BASE}/${encodedTreatment}/analysis?start_date=${start_date}&end_date=${end_date}`,
+                    objections: `${API_BASE}/${encodedTreatment}/objections?start_date=${start_date}&end_date=${end_date}`,
+                    crossSell: `${API_BASE}/${encodedTreatment}/cross-sell?start_date=${start_date}&end_date=${end_date}`,
+                    demographics: `${API_BASE}/${encodedTreatment}/demographics?start_date=${start_date}&end_date=${end_date}`,
+                    education: `${API_BASE}/${encodedTreatment}/education-effectiveness?start_date=${start_date}&end_date=${end_date}`,
+                };
+
+                const [
+                    analysisRes,
+                    objectionsRes,
+                    crossSellRes,
+                    demographicsRes,
+                    educationRes
+                ] = await Promise.all([
+                    fetch(endpoints.analysis),
+                    fetch(endpoints.objections),
+                    fetch(endpoints.crossSell),
+                    fetch(endpoints.demographics),
+                    fetch(endpoints.education),
+                ]);
+
+                const allResponses = [analysisRes, objectionsRes, crossSellRes, demographicsRes, educationRes];
+                const errorResponses = allResponses.filter(r => !r.ok);
+                if (errorResponses.length > 0) {
+                     const errorDetails = await Promise.all(errorResponses.map(async r => {
+                        const text = await r.text();
+                        return `${r.url.split('?')[0].split('/').pop()} -> ${r.statusText} (${r.status}): ${text.slice(0, 100)}`;
+                    }));
+                    throw new Error(`Failed to fetch some analysis data.\n- ${errorDetails.join('\n- ')}`);
+                }
+
+                const analysisJSON = await analysisRes.json();
+                const objectionsJSON = await objectionsRes.json();
+                const crossSellJSON = await crossSellRes.json();
+                const demographicsJSON = await demographicsRes.json();
+                const educationJSON = await educationRes.json();
+
+                // Transform analysis data
+                const consolidatedAnalysisData: TreatmentAnalysisData = {
+                    keyMetrics: [
+                        { title: "Recommendations", value: String(analysisJSON.recommendations) },
+                        { title: "Target Age Group", value: analysisJSON.target_age_group },
+                        { title: "Avg. Satisfaction", value: `${analysisJSON.avg_satisfaction_pct}%` },
+                        { title: "Conversion Rate", value: "82%" }, // Static for now as not in API
+                    ],
+                    objections: objectionsJSON.objections.map((o: any): TreatmentObjection => ({
+                        title: o.type,
+                        description: o.description,
+                        frequency: o.frequency,
+                    })),
+                    crossSell: crossSellJSON.cross_sell_opportunities.map((cs: any): TreatmentCrossSell => ({
+                        name: cs.procedure,
+                        rationale: cs.description,
+                        frequency: cs.frequency,
+                    })),
+                    demographics: {
+                        total_patients: demographicsJSON.total_patients,
+                        age_distribution: demographicsJSON.age_distribution,
+                    },
+                };
+                
+                setAnalysisData(consolidatedAnalysisData);
+                setEducationData(educationJSON);
+
+            } catch (err) {
+                 if (err instanceof Error) {
+                    setError(err.message);
+                } else {
+                    setError('An unknown error occurred while fetching analysis data.');
+                }
+                console.error("Failed to fetch treatment analysis data:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAnalysisData();
+    }, [treatmentName]);
+
+    return { analysisData, educationData, loading, error };
+};

@@ -4,13 +4,13 @@ import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
 import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe, Target, BookText, Settings, X, LogOut } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
   currentPage: Page;
   setCurrentPage: (page: Page) => void;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  onLogout: () => void;
 }
 
 const categorizedNavItems = [
@@ -20,10 +20,6 @@ const categorizedNavItems = [
       { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
       { id: 'opportunities', label: 'Opportunities', icon: Target },
       { id: 'treatments', label: 'Treatments', icon: Beaker },
-      { id: 'journey', label: 'Patient Journey', icon: Route },
-      { id: 'performance', label: 'Performance', icon: Users },
-      { id: 'forecasting', label: 'Forecasting', icon: TrendingUp },
-      { id: 'market', label: 'Market Intel', icon: Globe },
     ]
   },
   {
@@ -32,14 +28,15 @@ const categorizedNavItems = [
       { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
       { id: 'prompts', label: 'Prompt Library', icon: BookText },
       { id: 'podcasts', label: 'Podcasts', icon: Mic },
-      { id: 'practice', label: 'Practice Mode', icon: GraduationCap },
     ]
   }
 ];
 
 const settingsNavItem = { id: 'settings', label: 'Settings', icon: Settings };
 
-const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, setIsOpen, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, setIsOpen }) => {
+  const { logout } = useAuth();
+  
   const handleLinkClick = (page: Page) => {
     setCurrentPage(page);
     setIsOpen(false); // Close sidebar on navigation on mobile
@@ -135,7 +132,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
             <a
               id="nav-item-logout"
               href="#"
-              onClick={(e) => { e.preventDefault(); onLogout(); }}
+              onClick={(e) => { e.preventDefault(); logout(); }}
               className="flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors text-muted-foreground hover:bg-secondary/80 hover:text-foreground"
             >
               <LogOut className="mr-3 h-5 w-5" />

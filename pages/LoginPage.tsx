@@ -2,33 +2,51 @@ import React, { useState } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import Logo from '../components/ui/Logo';
-import { Mail, Lock, Eye, EyeOff, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { Checkbox } from '../components/ui/checkbox';
+import { supabase } from '../lib/supabaseClient';
 
-interface LoginPageProps {
-  onLogin: () => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
+const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const performLogin = async (emailVal: string, passwordVal: string) => {
+    setIsLoading(true);
+    setError(null);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: emailVal,
+      password: passwordVal,
+    });
+    setIsLoading(false);
+
+    if (error) {
+      if (error.message === 'Invalid login credentials') {
+        setError('Invalid email or password. Please try again.');
+      } else {
+        // For other errors, show a generic message and log the details.
+        // This prevents leaking sensitive info like "Invalid API key".
+        setError('An unexpected error occurred. Please try again.');
+        console.error('Supabase Login Error:', error);
+      }
+    }
+    // On successful login, the onAuthStateChange listener in AuthContext will handle the redirect.
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    // Simulate network request
-    setTimeout(() => {
-      setIsLoading(false);
-      onLogin();
-    }, 1000);
+    performLogin(email, password);
   };
   
   const handleQuickLogin = () => {
-    setEmail('demo@aesthetics360.com');
-    setPassword('password123');
+    const demoEmail = 'demo@aesthetics360.com';
+    const demoPassword = 'password123';
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    performLogin(demoEmail, demoPassword);
   };
 
   return (
@@ -113,6 +131,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
                 </div>
               </div>
             </div>
+            
+            {error && (
+                <div className="mt-4 flex items-center gap-2 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+                    <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                    <span>{error}</span>
+                </div>
+            )}
+
              <div className="flex items-center justify-between mt-4">
                 <div className="flex items-center gap-2">
                     <Checkbox id="remember-me" />

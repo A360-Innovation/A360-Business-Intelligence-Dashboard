@@ -1,57 +1,56 @@
 
+
 import React from 'react';
-import { Procedure, DemographicConcern } from '../../types';
-import { TreatmentAnalysis } from '../../data/treatmentAnalysisData';
+import { Procedure, TreatmentAnalysisData } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
-import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, Bar } from 'recharts';
-import { MessageSquareWarning, ScrollText, Zap } from 'lucide-react';
+import { ResponsiveContainer, BarChart, CartesianGrid, XAxis, YAxis, Tooltip as RechartsTooltip, Bar } from 'recharts';
+import { MessageSquareWarning, Zap } from 'lucide-react';
 import DashboardCard from '../DashboardCard';
+import Loader from '../icons/Loader';
 
 interface AnalysisDisplayProps {
-  treatment: Procedure | null;
-  analysisData: TreatmentAnalysis | null;
-  demographicsData: DemographicConcern[];
+  treatment: Procedure;
+  analysisData: TreatmentAnalysisData | null;
+  isLoading: boolean;
+  error: string | null;
 }
 
-const concernColors: { [key: string]: string } = {
-    'Acne': 'hsl(212, 33%, 49%)',
-    'Pigmentation': 'hsl(211, 35%, 60%)',
-    'Scarring': 'hsl(214, 32%, 74%)',
-    'Wrinkles': 'hsl(212, 33%, 39%)',
-    'Texture': 'hsl(217, 33%, 86%)',
-    'Sagging': 'hsl(213, 33%, 32%)',
-    'Volume Loss': 'hsl(212, 31%, 28%)',
-};
-
-const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisData, demographicsData }) => {
-    if (!treatment || !analysisData) {
+const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisData, isLoading, error }) => {
+    if (isLoading) {
         return (
+             <div className="flex items-center justify-center h-full">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader />
+                    <p className="text-muted-foreground">Fetching Analysis for {treatment.name}...</p>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+         return (
             <div className="flex items-center justify-center h-full p-8">
-                <div className="text-center">
-                    <p className="text-lg font-semibold text-foreground">Select a treatment to view analysis</p>
-                    <p className="text-muted-foreground mt-1">Choose an item from the list on the left to begin.</p>
+                <div className="text-center p-6 bg-destructive/10 border border-destructive rounded-lg max-w-lg">
+                    <h2 className="text-lg font-semibold text-destructive">Failed to Load Analysis for {treatment.name}</h2>
+                    <p className="text-destructive/80 mt-1 text-sm">{error}</p>
                 </div>
             </div>
         );
     }
 
-    // Prepare data for demographics chart
-    const relevantConcerns = Object.keys(concernColors);
-    const chartData = demographicsData.map(group => {
-        const concernsForGroup = group.concerns.filter(c => relevantConcerns.includes(c.name));
-        return {
-            group: group.group,
-            value: concernsForGroup.reduce((sum, c) => sum + c.value, 0) // Example: sum of values
-        };
-    });
+    if (!analysisData) {
+        return (
+             <div className="flex items-center justify-center h-full p-8">
+                <div className="text-center">
+                    <p className="text-lg font-semibold text-foreground">No analysis data available</p>
+                    <p className="text-muted-foreground mt-1">We couldn't find any data for {treatment.name} in the selected timeframe.</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-            <header>
-                <h1 className="text-3xl font-bold text-foreground">{treatment.name} Analysis</h1>
-                <p className="text-muted-foreground mt-1">Deep dive into performance, patient profile, and communication strategies.</p>
-            </header>
-            
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {analysisData.keyMetrics.map(metric => (
                    <Card key={metric.title}>
@@ -72,28 +71,11 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                 >
                     <div className="space-y-4">
                         {analysisData.objections.map(obj => (
-                            <div key={obj.title} className="flex items-start">
+                            <div key={obj.title + obj.description} className="flex items-start">
                                 <MessageSquareWarning className="h-5 w-5 text-warning mr-3 mt-1 flex-shrink-0" />
                                 <div>
-                                    <h4 className="font-semibold text-foreground">{obj.title}</h4>
+                                    <h4 className="font-semibold text-foreground">{obj.title} (Frequency: {obj.frequency})</h4>
                                     <p className="text-sm text-muted-foreground">{obj.description}</p>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </DashboardCard>
-
-                <DashboardCard
-                    title="Effective Scripts & Talking Points"
-                    tooltipText="Examples of effective phrases and talking points used by top practitioners to educate patients and handle objections."
-                >
-                    <div className="space-y-4">
-                         {analysisData.effectiveScripts.map(item => (
-                            <div key={item.title} className="flex items-start">
-                                <ScrollText className="h-5 w-5 text-success mr-3 mt-1 flex-shrink-0" />
-                                <div>
-                                    <h4 className="font-semibold text-foreground">{item.title}</h4>
-                                    <p className="text-sm text-muted-foreground italic">"{item.script}"</p>
                                 </div>
                             </div>
                         ))}
@@ -109,7 +91,7 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                             <div key={item.name} className="flex items-start">
                                 <Zap className="h-5 w-5 text-primary mr-3 mt-1 flex-shrink-0" />
                                 <div>
-                                    <h4 className="font-semibold text-foreground">{item.name}</h4>
+                                    <h4 className="font-semibold text-foreground">{item.name} (Frequency: {item.frequency})</h4>
                                     <p className="text-sm text-muted-foreground">{item.rationale}</p>
                                 </div>
                             </div>
@@ -118,17 +100,31 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                 </DashboardCard>
 
                 <DashboardCard
-                    title="Patient Demographics Profile"
+                    title="Patient Age Profile"
                     tooltipText="Understand the demographic profile of patients most interested in this treatment to focus your marketing efforts."
+                    className="lg:col-span-2"
                 >
                    <div style={{ width: '100%', height: 250 }}>
                        <ResponsiveContainer>
-                            <BarChart data={chartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                                <XAxis dataKey="group" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />
-                                <RechartsTooltip />
-                                <Bar dataKey="value" fill="hsl(var(--primary))" name="Concern Score" />
+                            <BarChart data={analysisData.demographics.age_distribution} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
+                                <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
+                                <XAxis dataKey="age_range" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                <YAxis tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} allowDecimals={false} />
+                                <RechartsTooltip 
+                                    cursor={{ fill: 'hsl(var(--accent))' }}
+                                    content={({ active, payload, label }) => {
+                                        if (active && payload && payload.length) {
+                                            return (
+                                                <div className="bg-card p-3 border border-border rounded-lg shadow-sm">
+                                                    <p className="font-bold text-card-foreground mb-1">Age Range: {label}</p>
+                                                    <p className="text-sm text-primary">{`Patient Count: ${payload[0].value}`}</p>
+                                                </div>
+                                            );
+                                        }
+                                        return null;
+                                    }}
+                                />
+                                <Bar dataKey="count" fill="hsl(var(--primary))" name="Patient Count" radius={[4, 4, 0, 0]} />
                             </BarChart>
                        </ResponsiveContainer>
                    </div>

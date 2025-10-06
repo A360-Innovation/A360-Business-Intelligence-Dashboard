@@ -8,6 +8,11 @@ import { cn } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import Loader from '../components/icons/Loader';
 
+const rapportDetails = {
+    summary: "Master the first three minutes of your consultation. We cover verbal and non-verbal cues to build trust and make patients feel heard.",
+    imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80"
+};
+
 const topicDetails: { [key: string]: { summary: string; imageUrl: string } } = {
     objection_handling: {
         summary: "A deep dive into handling specific, high-stakes cost objections. Learn how to reframe value and guide patients toward a confident 'yes'.",
@@ -21,10 +26,8 @@ const topicDetails: { [key: string]: { summary: string; imageUrl: string } } = {
         summary: "Learn to explain 'full' vs. 'natural' results using visual aids and clear analogies to set correct patient expectations.",
         imageUrl: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=800&q=80"
     },
-    rapport_building: {
-        summary: "Master the first three minutes of your consultation. We cover verbal and non-verbal cues to build trust and make patients feel heard.",
-        imageUrl: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80"
-    },
+    rapport_building: rapportDetails,
+    building_rapport: rapportDetails,
     default: {
         summary: 'An AI-generated podcast to help you improve your consultation skills.',
         imageUrl: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=800&q=80"
@@ -35,23 +38,33 @@ const podcastTopics = [
     { value: 'patient_education', label: 'Patient Education' },
     { value: 'upselling_opportunities', label: 'Upselling Opportunities' },
     { value: 'objection_handling', label: 'Objection Handling' },
+    { value: 'building_rapport', label: 'Rapport Building' },
 ];
 
 const formatApiPodcast = (apiPodcast: any): Podcast => {
-    const details = topicDetails[apiPodcast.topic] || topicDetails.default;
-    const durationSeconds = apiPodcast.file_size ? (apiPodcast.file_size * 8) / 128000 : 0;
+    const topic = apiPodcast.topic || 'default';
+    const details = topicDetails[topic] || topicDetails.default;
+    
+    const fileSize = apiPodcast.file_size || 0;
+    // Calculate duration from file size (assuming 128kbps bitrate)
+    const durationSeconds = fileSize > 0 ? (fileSize * 8) / 128000 : 0;
     const minutes = Math.floor(durationSeconds / 60);
     const seconds = Math.floor(durationSeconds % 60);
 
+    const creationDate = apiPodcast.created_at;
+    const podcastDate = creationDate
+        ? new Date(creationDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+        : 'Date not available';
+
     return {
         id: apiPodcast.id,
-        title: apiPodcast.title,
-        date: new Date(apiPodcast.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+        title: apiPodcast.title || 'Untitled Podcast',
+        date: podcastDate,
         duration: durationSeconds > 0 ? `${minutes}:${seconds < 10 ? '0' : ''}${seconds}` : undefined,
         summary: details.summary,
         audioUrl: apiPodcast.audio_url,
         imageUrl: details.imageUrl,
-        topic: apiPodcast.topic,
+        topic: topic,
     };
 };
 
@@ -174,6 +187,7 @@ const GeneratePodcastModal: React.FC<{
             onClose();
         } catch (e) {
             setError(e instanceof Error ? e.message : 'An unknown error occurred.');
+        } finally {
             setIsGenerating(false);
         }
     };
@@ -257,8 +271,14 @@ const PodcastsPage: React.FC = () => {
                 throw new Error(`Failed to fetch podcasts. Status: ${response.status}`);
             }
             const data = await response.json();
-            const formatted = data.podcasts.map(formatApiPodcast);
-            setPodcasts(formatted);
+
+            const sortedPodcasts = (data.podcasts || []).sort((a: any, b: any) => {
+                const dateA = a.created_at || 0;
+                const dateB = b.created_at || 0;
+                return new Date(dateB).getTime() - new Date(dateA).getTime();
+            });
+
+            setPodcasts(sortedPodcasts.map(formatApiPodcast));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred');
         } finally {
@@ -282,8 +302,14 @@ const PodcastsPage: React.FC = () => {
         try {
             const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/generate-audio?topic=${topic}&output_format=link&months=4`);
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || 'Failed to generate podcast.');
+                let errorMessage = 'Failed to generate podcast.';
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || `Server returned status ${response.status}.`;
+                } catch (e) {
+                     errorMessage = `Server returned status ${response.status}. Please try again later.`;
+                }
+                throw new Error(errorMessage);
             }
             await fetchPodcasts();
         } catch (error) {
@@ -310,7 +336,10 @@ const PodcastsPage: React.FC = () => {
             
             {isLoading && (
                 <div className="flex items-center justify-center h-96">
-                    <Loader />
+                    <div className="flex flex-col items-center gap-4">
+                        <Loader />
+                        <p className="text-muted-foreground">Loading Podcasts...</p>
+                    </div>
                 </div>
             )}
             

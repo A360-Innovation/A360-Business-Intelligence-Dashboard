@@ -1,5 +1,6 @@
 
-import React, { useContext, useMemo } from 'react';
+
+import React, { useContext, useMemo, useRef, useEffect } from 'react';
 import { PlayerContext } from '../contexts/PlayerContext';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
@@ -24,10 +25,27 @@ const ExpandedPlayer: React.FC = () => {
         setVolume,
         volume,
         isExpanded,
-        toggleExpanded
+        toggleExpanded,
+        subtitles,
     } = useContext(PlayerContext);
 
     const progressPercentage = duration > 0 ? (progress / duration) * 100 : 0;
+    
+    const activeSubtitleIndex = useMemo(() => {
+        if (!subtitles) return -1;
+        return subtitles.findIndex(sub => progress >= sub.startTime && progress < sub.endTime);
+    }, [subtitles, progress]);
+
+    const activeSubtitleRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (activeSubtitleRef.current) {
+            activeSubtitleRef.current.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center',
+            });
+        }
+    }, [activeSubtitleIndex]);
 
     if (!isExpanded || !currentPodcast) return null;
 
@@ -36,85 +54,105 @@ const ExpandedPlayer: React.FC = () => {
             "fixed inset-0 z-[100] bg-background flex flex-col transition-opacity duration-300",
             isExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
         )}>
-            {/* Blurred Background */}
             <div 
                 className="absolute inset-0 w-full h-full object-cover blur-3xl scale-125 opacity-30"
                 style={{ backgroundImage: `url(${currentPodcast.imageUrl})`, backgroundSize: 'cover' }}
             ></div>
 
-            <div className="relative flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
-                {/* Header with Close Button */}
-                <header className="flex-shrink-0">
+            <div className="relative flex-1 flex flex-col items-center p-4 sm:p-6 lg:p-8">
+                <header className="flex-shrink-0 w-full max-w-6xl">
                     <Button variant="ghost" size="icon" className="rounded-full" onClick={toggleExpanded}>
                         <ChevronDown className="h-5 w-5 text-muted-foreground" />
                     </Button>
                 </header>
 
-                <main className="flex-1 flex flex-col items-center justify-center gap-8 py-8">
-                    {/* Artwork */}
-                    <div className="w-full max-w-sm aspect-square rounded-xl shadow-2xl overflow-hidden">
-                        <img src={currentPodcast.imageUrl} alt={currentPodcast.title} className="w-full h-full object-cover" />
-                    </div>
-
-                    {/* Title & Info */}
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold text-foreground">{currentPodcast.title}</h1>
-                        <p className="text-base text-muted-foreground mt-1">{currentPodcast.date}</p>
-                    </div>
-
-                    {/* Seek Bar */}
-                    <div className="w-full max-w-lg">
-                        <div className="relative w-full h-1.5 bg-secondary rounded-full group cursor-pointer" onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const clickX = e.clientX - rect.left;
-                            seek(duration * (clickX / rect.width));
-                        }}>
-                            <div className="absolute h-1.5 bg-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
-                            <div 
-                                className="absolute w-4 h-4 bg-primary rounded-full -translate-y-1/2 top-1/2 transition-opacity opacity-0 group-hover:opacity-100" 
-                                style={{ left: `calc(${progressPercentage}% - 8px)` }}
-                            ></div>
+                <main className="flex-1 flex flex-col lg:flex-row items-center justify-center gap-8 py-8 w-full max-w-6xl mx-auto overflow-hidden">
+                    <div className="w-full lg:w-1/2 flex flex-col items-center gap-8">
+                        <div className="w-full max-w-sm aspect-square rounded-xl shadow-2xl overflow-hidden">
+                            <img src={currentPodcast.imageUrl} alt={currentPodcast.title} className="w-full h-full object-cover" />
                         </div>
-                        <div className="flex justify-between text-xs text-muted-foreground mt-2">
-                            <span>{formatTime(progress)}</span>
-                            <span>{formatTime(duration)}</span>
+                        <div className="text-center">
+                            <h1 className="text-2xl font-bold text-foreground">{currentPodcast.title}</h1>
+                            <p className="text-base text-muted-foreground mt-1">{currentPodcast.date}</p>
+                        </div>
+                        <div className="w-full max-w-lg">
+                            <div className="relative w-full h-1.5 bg-secondary rounded-full group cursor-pointer" onClick={(e) => {
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const clickX = e.clientX - rect.left;
+                                seek(duration * (clickX / rect.width));
+                            }}>
+                                <div className="absolute h-1.5 bg-primary rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+                                <div 
+                                    className="absolute w-4 h-4 bg-primary rounded-full -translate-y-1/2 top-1/2 transition-opacity opacity-0 group-hover:opacity-100" 
+                                    style={{ left: `calc(${progressPercentage}% - 8px)` }}
+                                ></div>
+                            </div>
+                            <div className="flex justify-between text-xs text-muted-foreground mt-2">
+                                <span>{formatTime(progress)}</span>
+                                <span>{formatTime(duration)}</span>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full" disabled>
+                                <SkipBack className="h-6 w-6" />
+                            </Button>
+                            <Button 
+                                variant="default" 
+                                size="icon" 
+                                className="h-16 w-16 rounded-full shadow-lg"
+                                onClick={togglePlayPause}
+                            >
+                                {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 fill-current" />}
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full" disabled>
+                                <SkipForward className="h-6 w-6" />
+                            </Button>
+                        </div>
+                        <div className="flex items-center gap-3 w-full max-w-xs">
+                             <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => setVolume(volume > 0 ? 0 : 1)}>
+                                {volume > 0 ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
+                            </Button>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.01"
+                                value={volume}
+                                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                                className="w-full h-1 accent-primary bg-secondary rounded-full appearance-none cursor-pointer"
+                            />
                         </div>
                     </div>
 
-                    {/* Main Controls */}
-                    <div className="flex items-center gap-4">
-                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full" disabled>
-                            <SkipBack className="h-6 w-6" />
-                        </Button>
-                        <Button 
-                            variant="default" 
-                            size="icon" 
-                            className="h-16 w-16 rounded-full shadow-lg"
-                            onClick={togglePlayPause}
-                        >
-                            {isPlaying ? <Pause className="h-8 w-8" /> : <Play className="h-8 w-8 fill-current" />}
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-12 w-12 rounded-full" disabled>
-                            <SkipForward className="h-6 w-6" />
-                        </Button>
+                    <div className="w-full lg:w-1/2 h-full max-h-[60vh] lg:max-h-full flex flex-col bg-card/50 backdrop-blur-sm rounded-xl border border-border overflow-hidden">
+                        <h2 className="text-lg font-bold p-4 border-b border-border flex-shrink-0 text-foreground">Transcript</h2>
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {subtitles && subtitles.length > 0 ? (
+                                subtitles.map((sub, index) => (
+                                    <div 
+                                        key={index} 
+                                        ref={index === activeSubtitleIndex ? activeSubtitleRef : null}
+                                        className={cn(
+                                            "p-2 rounded-md transition-colors duration-300",
+                                            index === activeSubtitleIndex ? "bg-primary/10" : ""
+                                        )}
+                                    >
+                                        <p className="text-sm font-bold text-foreground">{sub.speaker}</p>
+                                        <p className={cn(
+                                            "text-base",
+                                            index === activeSubtitleIndex ? "text-primary" : "text-muted-foreground"
+                                        )}>
+                                            {sub.text}
+                                        </p>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center text-muted-foreground p-8 flex items-center justify-center h-full">
+                                    <p>No transcript available for this episode.</p>
+                                </div>
+                            )}
+                        </div>
                     </div>
-
-                    {/* Volume Control */}
-                    <div className="flex items-center gap-3 w-full max-w-xs">
-                         <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={() => setVolume(volume > 0 ? 0 : 1)}>
-                            {volume > 0 ? <Volume2 className="h-4 w-4" /> : <VolumeX className="h-4 w-4" />}
-                        </Button>
-                        <input
-                            type="range"
-                            min="0"
-                            max="1"
-                            step="0.01"
-                            value={volume}
-                            onChange={(e) => setVolume(parseFloat(e.target.value))}
-                            className="w-full h-1 accent-primary bg-secondary rounded-full appearance-none cursor-pointer"
-                        />
-                    </div>
-
                 </main>
             </div>
         </div>

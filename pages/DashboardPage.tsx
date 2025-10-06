@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useRef, useEffect } from 'react';
 import { NarrativePaneInfo } from '../types';
 import MetricCard from '../components/MetricCard';
@@ -15,9 +16,11 @@ import AnalysisFields from '../components/AnalysisFields';
 import NarrativePane from '../components/NarrativePane';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
-import { Download, Plus, HelpCircle } from 'lucide-react';
+import { Download, HelpCircle } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
+import DatePicker from '../components/DatePicker';
+
 
 declare const Shepherd: any;
 
@@ -28,9 +31,29 @@ const DashboardPage: React.FC = () => {
     content: '',
   });
   const [analysisCache, setAnalysisCache] = useState<{ [key: string]: string }>({});
+
+  const today = new Date();
+  const oneMonthAgo = new Date();
+  oneMonthAgo.setMonth(today.getMonth() - 1);
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+  const [dateRange, setDateRange] = useState({
+      startDate: formatDate(oneMonthAgo),
+      endDate: formatDate(today),
+  });
   
-  const { data, loading, error } = useDashboardData();
+  const { data, loading, error } = useDashboardData({ 
+    startDate: dateRange.startDate, 
+    endDate: dateRange.endDate 
+  });
   const tourRef = useRef<any>(null);
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setDateRange(prev => ({
+          ...prev,
+          [e.target.name]: e.target.value
+      }));
+  };
 
   useEffect(() => {
     if (typeof Shepherd === 'undefined' || loading || error) {
@@ -66,7 +89,7 @@ const DashboardPage: React.FC = () => {
     tour.addStep({
         id: 'metrics',
         title: 'Key Performance Indicators (KPIs)',
-        text: 'These cards show your most important metrics at a glance. Click the "..." icon on any card to open a detailed, AI-generated analysis.',
+        text: 'These cards show your most important metrics at a glance. Click on any card with an available AI analysis to open a detailed, AI-generated report.',
         attachTo: { element: '#metric-cards-grid', on: 'bottom' },
         buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
     });
@@ -74,7 +97,7 @@ const DashboardPage: React.FC = () => {
     tour.addStep({
         id: 'concerns',
         title: 'Interactive Charts',
-        text: 'Visualizations like this "Patient Concerns" chart are interactive. Click on a slice to drill down for more specific data.',
+        text: 'Visualizations like this "Patient Concerns" chart are interactive. You can click on slices to drill down and explore the data.',
         attachTo: { element: '#concerns-chart-card', on: 'bottom' },
         buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Finish' }]
     });
@@ -90,6 +113,22 @@ const DashboardPage: React.FC = () => {
 
 
   const handleOpenNarrative = async (title: string) => {
+    // Defines which titles have an AI analysis endpoint.
+    const titleToEndpointSlug: { [key: string]: string } = {
+        'Total Transcripts': 'total-transcripts',
+        'Overall Satisfaction Score': 'overall-satisfaction',
+        'Education Effectiveness': 'education-effectiveness',
+        'Top Procedures Recommended': 'top-procedures',
+    };
+    
+    const endpointSlug = titleToEndpointSlug[title];
+
+    // If no endpoint is configured for this title, do nothing.
+    if (!endpointSlug) {
+      console.warn(`No AI analysis endpoint configured for: "${title}". Modal will not open.`);
+      return;
+    }
+
     // Check cache first
     if (analysisCache[title]) {
       setNarrativePane({
@@ -97,7 +136,7 @@ const DashboardPage: React.FC = () => {
         title: title,
         content: analysisCache[title],
       });
-      return; // Found in cache, no need to fetch
+      return;
     }
 
     // Not in cache, show loading and fetch
@@ -107,63 +146,37 @@ const DashboardPage: React.FC = () => {
       content: 'loading',
     });
 
-    const titleToEndpointSlug: { [key: string]: string } = {
-        'Total Transcripts': 'total-transcripts',
-        'Satisfaction Score': 'overall-satisfaction',
-        'Education Score': 'education-effectiveness',
-        'Conversion Rate': 'top-procedures', // Placeholder
-    };
-    
-    const endpointSlug = titleToEndpointSlug[title];
-
-    if (endpointSlug) {
-      try {
-        const endpoint = `https://chat-stream-production.up.railway.app/reports/${endpointSlug}?months=4`;
-        const response = await fetch(endpoint);
-        if (!response.ok) {
-          let errorBody = 'Could not retrieve details from the server.';
-          try {
-            const errorJson = await response.json();
-            errorBody = errorJson.detail || errorBody;
-          } catch (e) { /* ignore JSON parsing errors */ }
-          throw new Error(`API Error ${response.status}: ${errorBody}`);
-        }
-        const data = await response.json();
-        const analysisContent = data.analysis || 'No analysis available for this topic.';
-        
-        // Update cache with new content
-        setAnalysisCache(prevCache => ({
-            ...prevCache,
-            [title]: analysisContent,
-        }));
-        
-        setNarrativePane({
-          isOpen: true,
-          title: title,
-          content: analysisContent,
-        });
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
-        setNarrativePane({
-          isOpen: true,
-          title: title,
-          content: `### An error occurred\n\nWe were unable to load the analysis. Please try again later.\n\n**Details:**\n\`\`\`\n${errorMessage}\n\`\`\``,
-        });
+    try {
+      const endpoint = `https://chat-stream-production.up.railway.app/reports/${endpointSlug}?months=4`;
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        let errorBody = 'Could not retrieve details from the server.';
+        try {
+          const errorJson = await response.json();
+          errorBody = errorJson.detail || errorBody;
+        } catch (e) { /* ignore JSON parsing errors */ }
+        throw new Error(`API Error ${response.status}: ${errorBody}`);
       }
-    } else {
-        const fallbackContent = `Detailed analysis for **${title}**. This report provides an in-depth look at the underlying data, trends, and actionable insights. \n\n*This feature is under development. AI-generated content will be available here soon.*`;
-
-        // Also cache fallback content
-        setAnalysisCache(prevCache => ({
-            ...prevCache,
-            [title]: fallbackContent,
-        }));
-
-        setNarrativePane({
-            isOpen: true,
-            title: title,
-            content: fallbackContent,
-        });
+      const data = await response.json();
+      const analysisContent = data.analysis || 'No analysis available for this topic.';
+      
+      setAnalysisCache(prevCache => ({
+          ...prevCache,
+          [title]: analysisContent,
+      }));
+      
+      setNarrativePane({
+        isOpen: true,
+        title: title,
+        content: analysisContent,
+      });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred.';
+      setNarrativePane({
+        isOpen: true,
+        title: title,
+        content: `### An error occurred\n\nWe were unable to load the analysis. Please try again later.\n\n**Details:**\n\`\`\`\n${errorMessage}\n\`\`\``,
+      });
     }
   };
 
@@ -176,9 +189,19 @@ const DashboardPage: React.FC = () => {
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
       <div>
         <h2 className="text-lg font-semibold text-foreground">Clinic Overview</h2>
-        <p className="text-sm text-muted-foreground mt-1">Key metrics and trends from the last 30 days.</p>
+        <p className="text-sm text-muted-foreground mt-1">Key metrics and trends for the selected period.</p>
       </div>
       <div className="flex items-center space-x-2 mt-4 sm:mt-0">
+         <div className="flex items-center gap-2">
+            <div>
+              <label htmlFor="startDate" className="sr-only">Start Date</label>
+              <DatePicker id="startDate" name="startDate" value={dateRange.startDate} onChange={handleDateChange} />
+            </div>
+            <div>
+              <label htmlFor="endDate" className="sr-only">End Date</label>
+              <DatePicker id="endDate" name="endDate" value={dateRange.endDate} onChange={handleDateChange} />
+            </div>
+          </div>
         <Button variant="outline" size="sm" onClick={() => tourRef.current?.start()} className="h-9">
             <HelpCircle className="h-4 w-4 mr-2"/>
             Take a tour
@@ -187,21 +210,20 @@ const DashboardPage: React.FC = () => {
             <Download className="h-4 w-4 mr-2" />
             Export
         </Button>
-        <Button size="sm" className="h-9">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Widget
-        </Button>
       </div>
     </div>
   );
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-150px)]">
-          <div className="flex flex-col items-center gap-4">
-            <Loader />
-            <p className="text-muted-foreground">Loading Dashboard Data...</p>
-          </div>
+      <div className="p-4 sm:p-6 lg:p-8">
+        <DashboardSubHeader />
+        <div className="flex items-center justify-center h-[calc(100vh-250px)]">
+            <div className="flex flex-col items-center gap-4">
+              <Loader />
+              <p className="text-muted-foreground">Loading Dashboard Data...</p>
+            </div>
+        </div>
       </div>
     );
   }

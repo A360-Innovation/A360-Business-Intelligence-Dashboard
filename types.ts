@@ -74,6 +74,13 @@ export interface NarrativePaneInfo {
   content: string;
 }
 
+export interface Subtitle {
+    text: string;
+    speaker: string;
+    startTime: number;
+    endTime: number;
+}
+
 export interface Podcast {
   id: string;
   title: string;
@@ -83,6 +90,7 @@ export interface Podcast {
   audioUrl: string;
   imageUrl: string;
   topic?: string;
+  subtitles?: Subtitle[];
 }
 
 export type JourneyEventType = 'Inquiry' | 'Consultation' | 'Objection' | 'Resolution' | 'Treatment' | 'Follow-up' | 'Satisfaction';
@@ -241,4 +249,58 @@ export interface User {
 export interface ClinicSettings {
     name: string;
     website: string;
+}
+
+// Types for Treatment Analysis Page
+export interface TreatmentAnalysisMetric {
+    title: string;
+    value: string;
+}
+
+export interface TreatmentObjection {
+    title: string;
+    description: string;
+    frequency?: number;
+}
+
+export interface TreatmentCrossSell {
+    name: string;
+    rationale: string;
+    frequency?: number;
+}
+
+export interface TreatmentAgeDistribution {
+    age_range: string;
+    count: number;
+}
+
+export interface TreatmentDemographics {
+    total_patients: number;
+    age_distribution: TreatmentAgeDistribution[];
+}
+
+export interface TreatmentAnalysisData {
+    keyMetrics: TreatmentAnalysisMetric[];
+    objections: TreatmentObjection[];
+    crossSell: TreatmentCrossSell[];
+    demographics: TreatmentDemographics;
+}
+
+// Types for Treatment Education Effectiveness
+export interface EducationLabelDistribution {
+    label: string;
+    count: number;
+}
+
+export interface CommonEducationGap {
+    gap: string;
+    frequency: number;
+}
+
+export interface TreatmentEducationData {
+    treatment: string;
+    total_consultations: number;
+    avg_education_effectiveness_pct: number;
+    label_distribution: EducationLabelDistribution[];
+    common_education_gaps: CommonEducationGap[];
 }

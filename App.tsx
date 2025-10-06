@@ -21,8 +21,9 @@ import { cn } from './lib/utils';
 import { Menu, Search, Bell, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from './components/ui/button';
 import LoginPage from './pages/LoginPage';
+import { useAuth } from './contexts/AuthContext';
 
-const AuthenticatedApp: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
+const AuthenticatedApp: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { currentPodcast } = useContext(PlayerContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -49,7 +50,6 @@ const AuthenticatedApp: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
         setCurrentPage={setCurrentPage}
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
-        onLogout={onLogout}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="flex items-center justify-between h-[70px] px-6 border-b border-border bg-card flex-shrink-0">
@@ -106,15 +106,15 @@ const AuthenticatedApp: React.FC<{ onLogout: () => void }> = ({ onLogout }) => {
 
 
 const App: React.FC = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { session } = useAuth();
 
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={() => setIsAuthenticated(true)} />;
+  if (!session) {
+    return <LoginPage />;
   }
 
   return (
     <PlayerProvider>
-      <AuthenticatedApp onLogout={() => setIsAuthenticated(false)} />
+      <AuthenticatedApp />
     </PlayerProvider>
   );
 };

@@ -1,7 +1,8 @@
+import { ELEVENLABS_API_KEY as apiKey } from '../config';
 
 
-// NOTE: This requires the ELEVENLABS_API_KEY environment variable to be set.
-const ELEVENLABS_API_KEY = '';
+// NOTE: This requires the ELEVENLABS_API_KEY to be set in config.ts.
+const ELEVENLABS_API_KEY = apiKey;
 // A standard, high-quality voice (Rachel) suitable for a professional setting.
 const VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
 
@@ -12,7 +13,7 @@ const VOICE_ID = '21m00Tcm4TlvDq8ikWAM';
  */
 export const generateAndPlayAudio = (text: string): Promise<void> => {
   if (!ELEVENLABS_API_KEY) {
-    console.warn("ElevenLabs API key not found. Skipping audio playback.");
+    console.warn("ElevenLabs API key not found in config.ts. Skipping audio playback.");
     // Resolve immediately to not block the simulation if the key is missing.
     return Promise.resolve();
   }
