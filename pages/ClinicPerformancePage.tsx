@@ -1,10 +1,8 @@
 
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useClinicPerformanceData } from '../hooks/useClinicPerformanceData';
 import Loader from '../components/icons/Loader';
-// Fix: Corrected component import path from non-existent 'DatePicker' to 'DateRangePicker'.
-import DateRangePicker from '../components/ui/DateRangePicker';
+import DatePicker from '../components/DatePicker';
 import DashboardCard from '../components/DashboardCard';
 import { cn } from '../lib/utils';
 import { ClinicPerformanceData } from '../types';
@@ -46,15 +44,6 @@ const ClinicPerformancePage: React.FC = () => {
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
-    };
-
-    // Fix: Added a handler for the DateRangePicker component.
-    const handleDateRangeChange = (range: { from: Date; to: Date }) => {
-        setFilters({
-            ...filters,
-            from_day: formatDate(range.from),
-            to_day: formatDate(range.to),
-        });
     };
 
     const sortedData = useMemo(() => {
@@ -115,17 +104,14 @@ const ClinicPerformancePage: React.FC = () => {
                 <p className="text-muted-foreground mt-1">Compare key metrics across all clinic locations.</p>
             </header>
             
-            {/* Fix: Replaced two DatePicker components with a single DateRangePicker for consistency. */}
             <div className="p-4 bg-card border border-border rounded-lg flex flex-col sm:flex-row items-center gap-4 mb-6">
                 <div className="w-full sm:w-auto">
-                    <label className="text-xs font-medium text-muted-foreground">Date Range</label>
-                     <DateRangePicker
-                        date={{
-                            from: new Date(filters.from_day + 'T00:00:00'),
-                            to: new Date(filters.to_day + 'T00:00:00')
-                        }}
-                        onDateChange={handleDateRangeChange}
-                     />
+                    <label htmlFor="from_day" className="text-xs font-medium text-muted-foreground">From</label>
+                    <DatePicker id="from_day" name="from_day" value={filters.from_day} onChange={handleFilterChange} />
+                </div>
+                <div className="w-full sm:w-auto">
+                     <label htmlFor="to_day" className="text-xs font-medium text-muted-foreground">To</label>
+                     <DatePicker id="to_day" name="to_day" value={filters.to_day} onChange={handleFilterChange} />
                 </div>
                  <div className="w-full sm:w-auto">
                     <label htmlFor="clinic" className="text-xs font-medium text-muted-foreground">Clinic</label>

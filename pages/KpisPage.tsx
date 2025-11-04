@@ -1,19 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useKpisData } from '../hooks/useKpisData';
 import Loader from '../components/icons/Loader';
+import DatePicker from '../components/DatePicker';
 import { ChevronDown } from 'lucide-react';
 import DashboardCard from '../components/DashboardCard';
 import { cn } from '../lib/utils';
 import { KpiData } from '../types';
-import DateRangePicker from '../components/ui/DateRangePicker';
 
 const KpisPage: React.FC = () => {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(today.getMonth() - 1);
 
-    const [dateRange, setDateRange] = useState({ from: oneMonthAgo, to: today });
-    const [selectedClinic, setSelectedClinic] = useState('All Clinics');
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+    const [filters, setFilters] = useState({
+        from_day: formatDate(oneMonthAgo),
+        to_day: formatDate(today),
+        clinic: 'All Clinics',
+    });
     
     const [clinics, setClinics] = useState<string[]>([]);
 
@@ -32,13 +37,11 @@ const KpisPage: React.FC = () => {
         fetchClinics();
     }, []);
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    const { kpis, loading, error } = useKpisData(filters);
 
-    const { kpis, loading, error } = useKpisData({
-        from_day: formatDate(dateRange.from),
-        to_day: formatDate(dateRange.to),
-        clinic: selectedClinic,
-    });
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
     
     const renderKpiValue = (value: number | null, isPercent = false) => {
         if (value === null || value === undefined) return <span className="text-muted-foreground">-</span>;
@@ -64,8 +67,12 @@ const KpisPage: React.FC = () => {
             
             <div className="p-4 bg-card border border-border rounded-lg flex flex-col sm:flex-row items-center gap-4 mb-6">
                 <div className="w-full sm:w-auto">
-                    <label className="text-xs font-medium text-muted-foreground">Date Range</label>
-                    <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+                    <label htmlFor="from_day" className="text-xs font-medium text-muted-foreground">From</label>
+                    <DatePicker id="from_day" name="from_day" value={filters.from_day} onChange={handleFilterChange} />
+                </div>
+                <div className="w-full sm:w-auto">
+                     <label htmlFor="to_day" className="text-xs font-medium text-muted-foreground">To</label>
+                     <DatePicker id="to_day" name="to_day" value={filters.to_day} onChange={handleFilterChange} />
                 </div>
                 <div className="w-full sm:w-auto">
                     <label htmlFor="clinic" className="text-xs font-medium text-muted-foreground">Clinic</label>
@@ -73,8 +80,8 @@ const KpisPage: React.FC = () => {
                         <select
                             id="clinic"
                             name="clinic"
-                            value={selectedClinic}
-                            onChange={(e) => setSelectedClinic(e.target.value)}
+                            value={filters.clinic}
+                            onChange={handleFilterChange}
                             className="appearance-none h-9 w-full sm:w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                             {clinics.map(c => <option key={c} value={c}>{c}</option>)}

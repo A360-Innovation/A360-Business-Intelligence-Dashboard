@@ -1,5 +1,6 @@
+
 import React from 'react';
-import DateRangePicker from '../ui/DateRangePicker';
+import { Button } from '../ui/button';
 
 interface FilterBarProps {
   filters: { type: string; day_from: string; day_to: string; };
@@ -12,15 +13,6 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, setFilters }) => {
         setFilters({
             ...filters,
             [e.target.name]: e.target.value
-        });
-    };
-
-    const handleDateRangeChange = (range: { from: Date, to: Date }) => {
-        const formatDate = (date: Date) => date.toISOString().split('T')[0];
-        setFilters({
-            ...filters,
-            day_from: formatDate(range.from),
-            day_to: formatDate(range.to)
         });
     };
     
@@ -41,14 +33,26 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, setFilters }) => {
                 </select>
             </div>
             <div className="w-full sm:w-auto">
-                 <label className="text-xs font-medium text-muted-foreground">Date Range</label>
-                 <DateRangePicker
-                    date={{
-                        from: new Date(filters.day_from + 'T00:00:00'),
-                        to: new Date(filters.day_to + 'T00:00:00')
-                    }}
-                    onDateChange={handleDateRangeChange}
-                 />
+                 <label htmlFor="day_from" className="text-xs font-medium text-muted-foreground">From</label>
+                 <input 
+                    type="date"
+                    id="day_from"
+                    name="day_from"
+                    value={filters.day_from}
+                    onChange={handleInputChange}
+                    className="mt-1 appearance-none w-full bg-secondary border border-transparent rounded-md h-9 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
+            </div>
+            <div className="w-full sm:w-auto">
+                 <label htmlFor="day_to" className="text-xs font-medium text-muted-foreground">To</label>
+                 <input 
+                    type="date"
+                    id="day_to"
+                    name="day_to"
+                    value={filters.day_to}
+                    onChange={handleInputChange}
+                    className="mt-1 appearance-none w-full bg-secondary border border-transparent rounded-md h-9 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                />
             </div>
         </div>
     );

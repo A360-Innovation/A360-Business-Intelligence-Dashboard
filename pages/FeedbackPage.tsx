@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useFeedbackData } from '../hooks/useFeedbackData';
 import Loader from '../components/icons/Loader';
+import DatePicker from '../components/DatePicker';
 import { ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, Meh } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { cn } from '../lib/utils';
 import { Feedback } from '../types';
-import DateRangePicker from '../components/ui/DateRangePicker';
 
 const FeedbackCard: React.FC<{ item: Feedback }> = ({ item }) => {
     const sentimentConfig = {
@@ -50,9 +50,14 @@ const FeedbackPage: React.FC = () => {
     const today = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(today.getMonth() - 1);
-    
-    const [dateRange, setDateRange] = useState({ from: oneMonthAgo, to: today });
-    const [selectedClinic, setSelectedClinic] = useState('All Clinics');
+
+    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+
+    const [filters, setFilters] = useState({
+        start_date: formatDate(oneMonthAgo),
+        end_date: formatDate(today),
+        clinic: 'All Clinics',
+    });
     
     const [clinics, setClinics] = useState<string[]>([]);
 
@@ -70,14 +75,12 @@ const FeedbackPage: React.FC = () => {
         };
         fetchClinics();
     }, []);
-    
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-    const { feedback, loading, error } = useFeedbackData({
-        start_date: formatDate(dateRange.from),
-        end_date: formatDate(dateRange.to),
-        clinic: selectedClinic,
-    });
+    const { feedback, loading, error } = useFeedbackData(filters);
+
+    const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    };
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -88,8 +91,12 @@ const FeedbackPage: React.FC = () => {
             
             <div className="p-4 bg-card border border-border rounded-lg flex flex-col sm:flex-row items-center gap-4 mb-6">
                 <div className="w-full sm:w-auto">
-                    <label className="text-xs font-medium text-muted-foreground">Date Range</label>
-                    <DateRangePicker date={dateRange} onDateChange={setDateRange} />
+                    <label htmlFor="start_date" className="text-xs font-medium text-muted-foreground">From</label>
+                    <DatePicker id="start_date" name="start_date" value={filters.start_date} onChange={handleFilterChange} />
+                </div>
+                <div className="w-full sm:w-auto">
+                     <label htmlFor="end_date" className="text-xs font-medium text-muted-foreground">To</label>
+                     <DatePicker id="end_date" name="end_date" value={filters.end_date} onChange={handleFilterChange} />
                 </div>
                 <div className="w-full sm:w-auto">
                     <label htmlFor="clinic" className="text-xs font-medium text-muted-foreground">Clinic</label>
@@ -97,8 +104,8 @@ const FeedbackPage: React.FC = () => {
                         <select
                             id="clinic"
                             name="clinic"
-                            value={selectedClinic}
-                            onChange={(e) => setSelectedClinic(e.target.value)}
+                            value={filters.clinic}
+                            onChange={handleFilterChange}
                             className="appearance-none h-9 w-full sm:w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                         >
                             {clinics.map(c => <option key={c} value={c}>{c}</option>)}
