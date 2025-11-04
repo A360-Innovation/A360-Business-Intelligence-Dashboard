@@ -3,7 +3,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic, GraduationCap, Beaker, Route, Users, TrendingUp, Globe, Target, BookText, Settings, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {

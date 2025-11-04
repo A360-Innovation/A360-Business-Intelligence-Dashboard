@@ -1,11 +1,10 @@
 
-
 import { useState, useEffect } from 'react';
 import { TreatmentAnalysisData, TreatmentObjection, TreatmentCrossSell, TreatmentEducationData } from '../types';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app/treatments';
 
-export const useTreatmentAnalysis = (treatmentName: string | null) => {
+export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: string | null) => {
     const [analysisData, setAnalysisData] = useState<TreatmentAnalysisData | null>(null);
     const [educationData, setEducationData] = useState<TreatmentEducationData | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
@@ -33,12 +32,17 @@ export const useTreatmentAnalysis = (treatmentName: string | null) => {
             const encodedTreatment = encodeURIComponent(treatmentName.toLowerCase());
 
             try {
+                let queryParams = `?start_date=${start_date}&end_date=${end_date}`;
+                if (clinicName && clinicName !== 'All Clinics') {
+                    queryParams += `&clinic=${encodeURIComponent(clinicName)}`;
+                }
+
                 const endpoints = {
-                    analysis: `${API_BASE}/${encodedTreatment}/analysis?start_date=${start_date}&end_date=${end_date}`,
-                    objections: `${API_BASE}/${encodedTreatment}/objections?start_date=${start_date}&end_date=${end_date}`,
-                    crossSell: `${API_BASE}/${encodedTreatment}/cross-sell?start_date=${start_date}&end_date=${end_date}`,
-                    demographics: `${API_BASE}/${encodedTreatment}/demographics?start_date=${start_date}&end_date=${end_date}`,
-                    education: `${API_BASE}/${encodedTreatment}/education-effectiveness?start_date=${start_date}&end_date=${end_date}`,
+                    analysis: `${API_BASE}/${encodedTreatment}/analysis${queryParams}`,
+                    objections: `${API_BASE}/${encodedTreatment}/objections${queryParams}`,
+                    crossSell: `${API_BASE}/${encodedTreatment}/cross-sell${queryParams}`,
+                    demographics: `${API_BASE}/${encodedTreatment}/demographics${queryParams}`,
+                    education: `${API_BASE}/${encodedTreatment}/education-effectiveness${queryParams}`,
                 };
 
                 const [
@@ -111,7 +115,7 @@ export const useTreatmentAnalysis = (treatmentName: string | null) => {
         };
 
         fetchAnalysisData();
-    }, [treatmentName]);
+    }, [treatmentName, clinicName]);
 
     return { analysisData, educationData, loading, error };
 };

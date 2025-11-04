@@ -1,5 +1,6 @@
 
 
+
 export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings';
 
 export type Timeframe = 'Monthly' | 'Weekly';
@@ -303,4 +304,31 @@ export interface TreatmentEducationData {
     avg_education_effectiveness_pct: number;
     label_distribution: EducationLabelDistribution[];
     common_education_gaps: CommonEducationGap[];
+}
+// Fix: Add missing type definitions to resolve import errors.
+// Types for KPIs Page
+export interface KpiData {
+    day: string;
+    clinic?: string;
+    transcripts_count: number;
+    avg_satisfaction: number | null;
+    avg_education_effectiveness: number | null;
+    objections_count: number | null;
+    top_problems: string[] | null;
+    top_procedures: string[] | null;
+}
+
+// Types for Feedback Page
+export interface Feedback {
+    label: 'positive' | 'negative' | 'neutral';
+    snippet: string;
+}
+
+// Types for Clinic Performance Page
+export interface ClinicPerformanceData {
+    clinicName: string;
+    totalConsultations: number;
+    totalObjections: number;
+    avgSatisfaction: number | null;
+    avgEducation: number | null;
 }

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { DashboardData, HighLevelMetric, Concern, Procedure, TrendData, PatientExperienceData } from '../types';
 import { DASHBOARD_DATA } from '../constants';
@@ -7,9 +8,10 @@ const API_BASE = 'https://rag-aesthetic-production.up.railway.app/metrics';
 interface UseDashboardDataProps {
     startDate: string;
     endDate: string;
+    clinic: string;
 }
 
-export const useDashboardData = ({ startDate, endDate }: UseDashboardDataProps) => {
+export const useDashboardData = ({ startDate, endDate, clinic }: UseDashboardDataProps) => {
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,10 @@ export const useDashboardData = ({ startDate, endDate }: UseDashboardDataProps) 
                 setLoading(true);
                 setError(null);
 
-                const queryParams = `?start_date=${startDate}&end_date=${endDate}`;
+                let queryParams = `?start_date=${startDate}&end_date=${endDate}`;
+                if (clinic && clinic !== 'All Clinics') {
+                    queryParams += `&clinic=${encodeURIComponent(clinic)}`;
+                }
 
                 const [
                     summaryRes,
@@ -132,7 +137,7 @@ export const useDashboardData = ({ startDate, endDate }: UseDashboardDataProps) 
         };
 
         fetchData();
-    }, [startDate, endDate]);
+    }, [startDate, endDate, clinic]);
 
     return { data, loading, error };
 };

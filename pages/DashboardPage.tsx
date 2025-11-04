@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useRef, useEffect } from 'react';
 import { NarrativePaneInfo } from '../types';
 import MetricCard from '../components/MetricCard';
@@ -16,10 +13,10 @@ import AnalysisFields from '../components/AnalysisFields';
 import NarrativePane from '../components/NarrativePane';
 import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
-import { Download, HelpCircle } from 'lucide-react';
+import { Download, HelpCircle, ChevronDown } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
-import DatePicker from '../components/DatePicker';
+import DateRangePicker from '../components/ui/DateRangePicker';
 
 
 declare const Shepherd: any;
@@ -32,28 +29,46 @@ const DashboardPage: React.FC = () => {
   });
   const [analysisCache, setAnalysisCache] = useState<{ [key: string]: string }>({});
 
-  const today = new Date();
-  const oneMonthAgo = new Date();
-  oneMonthAgo.setMonth(today.getMonth() - 1);
+  const getInitialDateRange = () => {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 1);
+    return {
+      from: startDate,
+      to: endDate,
+    };
+  };
+
+  const [dateRange, setDateRange] = useState(getInitialDateRange());
+  const [clinics, setClinics] = useState<string[]>([]);
+  const [selectedClinic, setSelectedClinic] = useState<string>('All Clinics');
+  
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-  const [dateRange, setDateRange] = useState({
-      startDate: formatDate(oneMonthAgo),
-      endDate: formatDate(today),
-  });
-  
   const { data, loading, error } = useDashboardData({ 
-    startDate: dateRange.startDate, 
-    endDate: dateRange.endDate 
+    startDate: formatDate(dateRange.from), 
+    endDate: formatDate(dateRange.to),
+    clinic: selectedClinic,
   });
   const tourRef = useRef<any>(null);
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDateRange(prev => ({
-          ...prev,
-          [e.target.name]: e.target.value
-      }));
-  };
+  useEffect(() => {
+    const fetchClinics = async () => {
+        try {
+            const response = await fetch('https://rag-aesthetic-production.up.railway.app/clinics/');
+            if (!response.ok) {
+                throw new Error('Failed to fetch clinics list');
+            }
+            const data = await response.json();
+            setClinics(['All Clinics', ...(data.clinics || [])]);
+        } catch (error) {
+            console.error('Error fetching clinics:', error);
+            setClinics(['All Clinics']);
+        }
+    };
+    fetchClinics();
+  }, []);
+
 
   useEffect(() => {
     if (typeof Shepherd === 'undefined' || loading || error) {
@@ -193,14 +208,26 @@ const DashboardPage: React.FC = () => {
       </div>
       <div className="flex items-center space-x-2 mt-4 sm:mt-0">
          <div className="flex items-center gap-2">
+            {/* Clinic Filter */}
             <div>
-              <label htmlFor="startDate" className="sr-only">Start Date</label>
-              <DatePicker id="startDate" name="startDate" value={dateRange.startDate} onChange={handleDateChange} />
+              <label htmlFor="clinic" className="sr-only">Clinic</label>
+              <div className="relative">
+                <select
+                    id="clinic"
+                    name="clinic"
+                    value={selectedClinic}
+                    onChange={(e) => setSelectedClinic(e.target.value)}
+                    className="appearance-none h-9 w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    aria-label="Select Clinic"
+                >
+                    {clinics.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                    ))}
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              </div>
             </div>
-            <div>
-              <label htmlFor="endDate" className="sr-only">End Date</label>
-              <DatePicker id="endDate" name="endDate" value={dateRange.endDate} onChange={handleDateChange} />
-            </div>
+            <DateRangePicker date={dateRange} onDateChange={setDateRange} />
           </div>
         <Button variant="outline" size="sm" onClick={() => tourRef.current?.start()} className="h-9">
             <HelpCircle className="h-4 w-4 mr-2"/>
