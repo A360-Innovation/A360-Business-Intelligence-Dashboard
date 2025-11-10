@@ -15,11 +15,13 @@ import MarketIntelPage from './pages/MarketIntelPage';
 import OpportunitiesPage from './pages/OpportunitiesPage';
 import PromptsPage from './pages/PromptsPage';
 import SettingsPage from './pages/SettingsPage';
+import KpisPage from './pages/KpisPage';
+import ClinicPerformancePage from './pages/ClinicPerformancePage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import ExpandedPlayer from './components/ExpandedPlayer';
 import { cn } from './lib/utils';
-import { Menu, Search, Bell, Settings as SettingsIcon } from 'lucide-react';
+import { Menu, Search, Bell } from 'lucide-react';
 import { Button } from './components/ui/button';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './contexts/AuthContext';
@@ -28,6 +30,7 @@ const AuthenticatedApp: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const { currentPodcast } = useContext(PlayerContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { user, isSuperAdmin } = useAuth();
 
   const pageTitles: { [key in Page]: string } = {
     dashboard: 'Dashboard',
@@ -42,6 +45,8 @@ const AuthenticatedApp: React.FC = () => {
     opportunities: 'Opportunities Hub',
     prompts: 'Prompt Library',
     settings: 'Settings',
+    kpis: 'Daily KPIs',
+    clinicPerformance: 'Clinic Performance'
   };
 
   return (
@@ -64,7 +69,7 @@ const AuthenticatedApp: React.FC = () => {
             </button>
             <h1 className="text-xl font-bold text-foreground">{pageTitles[currentPage]}</h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <div className="relative hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <input
@@ -76,11 +81,21 @@ const AuthenticatedApp: React.FC = () => {
             <Button variant="ghost" size="icon" className="rounded-full h-9 w-9">
                 <Bell className="h-5 w-5 text-muted-foreground" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full h-9 w-9" onClick={() => setCurrentPage('settings')}>
-                <SettingsIcon className="h-5 w-5 text-muted-foreground" />
-            </Button>
-            <div className="w-8 h-8 rounded-full bg-destructive/20 text-destructive flex items-center justify-center font-bold text-xs ml-2">
-              K
+            
+            <div className="h-6 w-px bg-border hidden sm:block"></div>
+
+            <div 
+                className="flex items-center gap-3 cursor-pointer rounded-lg p-1 pr-2 hover:bg-secondary transition-colors"
+                onClick={() => setCurrentPage('settings')}
+                title="View profile and settings"
+            >
+                <div className="w-9 h-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
+                    {user?.email?.charAt(0).toUpperCase() || '?'}
+                </div>
+                <div className="text-left hidden sm:block">
+                    <p className="font-semibold text-sm text-foreground truncate max-w-[150px]">{user?.email || 'User'}</p>
+                    <p className="text-xs text-muted-foreground">{isSuperAdmin ? 'Super Admin' : 'Practitioner'}</p>
+                </div>
             </div>
           </div>
         </header>
@@ -97,6 +112,8 @@ const AuthenticatedApp: React.FC = () => {
           {currentPage === 'opportunities' && <OpportunitiesPage />}
           {currentPage === 'prompts' && <PromptsPage />}
           {currentPage === 'settings' && <SettingsPage />}
+          {currentPage === 'kpis' && <KpisPage />}
+          {currentPage === 'clinicPerformance' && <ClinicPerformancePage />}
         </main>
         {currentPodcast && <Player />}
         <ExpandedPlayer />

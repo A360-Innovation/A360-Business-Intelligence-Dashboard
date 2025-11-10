@@ -17,6 +17,8 @@ import { Download, HelpCircle, ChevronDown } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
 import DatePicker from '../components/DatePicker';
+import { useAuth } from '../contexts/AuthContext';
+import { useClinicsList } from '../hooks/useClinicsList';
 
 
 declare const Shepherd: any;
@@ -28,6 +30,7 @@ const DashboardPage: React.FC = () => {
     content: '',
   });
   const [analysisCache, setAnalysisCache] = useState<{ [key: string]: string }>({});
+  const { session, isSuperAdmin } = useAuth();
 
   const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
@@ -44,32 +47,15 @@ const DashboardPage: React.FC = () => {
   };
 
   const [dateRange, setDateRange] = useState(getInitialDateRange());
-  const [clinics, setClinics] = useState<string[]>([]);
+  const { clinics } = useClinicsList();
   const [selectedClinic, setSelectedClinic] = useState<string>('All Clinics');
   
   const { data, loading, error } = useDashboardData({ 
     startDate: dateRange.startDate, 
     endDate: dateRange.endDate,
-    clinic: selectedClinic,
+    clinic: isSuperAdmin ? selectedClinic : '',
   });
   const tourRef = useRef<any>(null);
-
-  useEffect(() => {
-    const fetchClinics = async () => {
-        try {
-            const response = await fetch('https://rag-aesthetic-production.up.railway.app/clinics/');
-            if (!response.ok) {
-                throw new Error('Failed to fetch clinics list');
-            }
-            const data = await response.json();
-            setClinics(['All Clinics', ...(data.clinics || [])]);
-        } catch (error) {
-            console.error('Error fetching clinics:', error);
-            setClinics(['All Clinics']);
-        }
-    };
-    fetchClinics();
-  }, []);
 
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,7 +93,7 @@ const DashboardPage: React.FC = () => {
         title: 'Main Navigation',
         text: 'Use the sidebar to navigate between different modules like the Dashboard, Chat, Practice Mode, and more.',
         attachTo: { element: '#sidebar', on: 'right' },
-        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Finish' }]
     });
 
     tour.addStep({
@@ -115,7 +101,7 @@ const DashboardPage: React.FC = () => {
         title: 'Key Performance Indicators (KPIs)',
         text: 'These cards show your most important metrics at a glance. Click on any card with an available AI analysis to open a detailed, AI-generated report.',
         attachTo: { element: '#metric-cards-grid', on: 'bottom' },
-        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Next' }]
+        buttons: [{ action: tour.back, classes: 'shepherd-button-secondary', text: 'Back' }, { action: tour.next, text: 'Finish' }]
     });
     
     tour.addStep({
@@ -137,6 +123,10 @@ const DashboardPage: React.FC = () => {
 
 
   const handleOpenNarrative = async (title: string) => {
+    if (!session) {
+        setNarrativePane({ isOpen: true, title, content: 'Authentication error: Please log in again.' });
+        return;
+    }
     // Defines which titles have an AI analysis endpoint.
     const titleToEndpointSlug: { [key: string]: string } = {
         'Total Transcripts': 'total-transcripts',
@@ -172,7 +162,9 @@ const DashboardPage: React.FC = () => {
 
     try {
       const endpoint = `https://chat-stream-production.up.railway.app/reports/${endpointSlug}?months=4`;
-      const response = await fetch(endpoint);
+      const response = await fetch(endpoint, {
+          headers: { 'Authorization': `Bearer ${session.access_token}` }
+      });
       if (!response.ok) {
         let errorBody = 'Could not retrieve details from the server.';
         try {
@@ -217,25 +209,26 @@ const DashboardPage: React.FC = () => {
       </div>
       <div className="flex items-center space-x-2 mt-4 sm:mt-0">
          <div className="flex items-center gap-2">
-            {/* Clinic Filter */}
-            <div>
-              <label htmlFor="clinic" className="sr-only">Clinic</label>
-              <div className="relative">
-                <select
-                    id="clinic"
-                    name="clinic"
-                    value={selectedClinic}
-                    onChange={(e) => setSelectedClinic(e.target.value)}
-                    className="appearance-none h-9 w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                    aria-label="Select Clinic"
-                >
-                    {clinics.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                    ))}
-                </select>
-                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            {isSuperAdmin && (
+              <div>
+                <label htmlFor="clinic" className="sr-only">Clinic</label>
+                <div className="relative">
+                  <select
+                      id="clinic"
+                      name="clinic"
+                      value={selectedClinic}
+                      onChange={(e) => setSelectedClinic(e.target.value)}
+                      className="appearance-none h-9 w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                      aria-label="Select Clinic"
+                  >
+                      {clinics.map(c => (
+                          <option key={c} value={c}>{c}</option>
+                      ))}
+                  </select>
+                  <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                </div>
               </div>
-            </div>
+            )}
             <div>
               <label htmlFor="startDate" className="sr-only">Start Date</label>
               <DatePicker id="startDate" name="startDate" value={dateRange.startDate} onChange={handleDateChange} />

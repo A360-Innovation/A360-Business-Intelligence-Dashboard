@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { DashboardData, HighLevelMetric, Concern, Procedure, TrendData, PatientExperienceData } from '../types';
 import { DASHBOARD_DATA } from '../constants';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app/metrics';
 
@@ -12,18 +12,26 @@ interface UseDashboardDataProps {
 }
 
 export const useDashboardData = ({ startDate, endDate, clinic }: UseDashboardDataProps) => {
+    const { session } = useAuth();
     const [data, setData] = useState<DashboardData | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!startDate || !endDate) return;
+        if (!startDate || !endDate || !session) {
+            // If there's no session, we can't fetch. We shouldn't show a loading state forever.
+            if (!session) setLoading(false);
+            return;
+        }
 
         const fetchData = async () => {
             try {
                 setLoading(true);
                 setError(null);
 
+                const headers = { 
+                    'Authorization': `Bearer ${session.access_token}`,
+                };
                 let queryParams = `?start_date=${startDate}&end_date=${endDate}`;
                 if (clinic && clinic !== 'All Clinics') {
                     queryParams += `&clinic=${encodeURIComponent(clinic)}`;
@@ -36,11 +44,11 @@ export const useDashboardData = ({ startDate, endDate, clinic }: UseDashboardDat
                     trendsRes,
                     experienceRes,
                 ] = await Promise.all([
-                    fetch(`${API_BASE}/summary${queryParams}`),
-                    fetch(`${API_BASE}/concerns${queryParams}`),
-                    fetch(`${API_BASE}/top_procedures${queryParams}`),
-                    fetch(`${API_BASE}/treatment_trends${queryParams}`),
-                    fetch(`${API_BASE}/experience_timeseries${queryParams}`),
+                    fetch(`${API_BASE}/summary${queryParams}`, { headers }),
+                    fetch(`${API_BASE}/concerns${queryParams}`, { headers }),
+                    fetch(`${API_BASE}/top_procedures${queryParams}`, { headers }),
+                    fetch(`${API_BASE}/treatment_trends${queryParams}`, { headers }),
+                    fetch(`${API_BASE}/experience_timeseries${queryParams}`, { headers }),
                 ]);
 
                 const allResponses = [summaryRes, concernsRes, topProceduresRes, trendsRes, experienceRes];
@@ -89,9 +97,9 @@ export const useDashboardData = ({ startDate, endDate, clinic }: UseDashboardDat
                 }));
 
                 // 4. Transform Treatment Trends
-                const treatmentTrends: TrendData[] = trendsData.labels.map((label: string, index: number) => {
+                const treatmentTrends: TrendData[] = (trendsData?.labels || []).map((label: string, index: number) => {
                     const trend: TrendData = { month: label };
-                    trendsData.series.forEach((s: { name: string; data: (number | null)[] }) => {
+                    (trendsData?.series || []).forEach((s: { name: string; data: (number | null)[] }) => {
                         trend[s.name] = s.data[index] ?? 0;
                     });
                     return trend;
@@ -137,7 +145,7 @@ export const useDashboardData = ({ startDate, endDate, clinic }: UseDashboardDat
         };
 
         fetchData();
-    }, [startDate, endDate, clinic]);
+    }, [startDate, endDate, clinic, session]);
 
     return { data, loading, error };
 };

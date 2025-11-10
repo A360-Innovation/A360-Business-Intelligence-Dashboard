@@ -1,6 +1,9 @@
 
+
+
 import { useState, useEffect } from 'react';
 import { KpiData } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app';
 
@@ -12,12 +15,16 @@ interface UseKpisDataParams {
 }
 
 export const useKpisData = ({ from_day, to_day, clinic, limit = 90 }: UseKpisDataParams) => {
+    const { session } = useAuth();
     const [kpis, setKpis] = useState<KpiData[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!from_day || !to_day) return;
+        if (!from_day || !to_day || !session) {
+            if (!session) setLoading(false);
+            return;
+        }
 
         const fetchKpis = async () => {
             try {
@@ -33,7 +40,9 @@ export const useKpisData = ({ from_day, to_day, clinic, limit = 90 }: UseKpisDat
                     url.searchParams.append('clinic', clinic);
                 }
 
-                const response = await fetch(url.toString());
+                const response = await fetch(url.toString(), {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch KPIs. Status: ${response.statusText}`);
@@ -57,7 +66,7 @@ export const useKpisData = ({ from_day, to_day, clinic, limit = 90 }: UseKpisDat
         };
 
         fetchKpis();
-    }, [from_day, to_day, clinic, limit]);
+    }, [from_day, to_day, clinic, limit, session]);
 
     return { kpis, loading, error };
 };

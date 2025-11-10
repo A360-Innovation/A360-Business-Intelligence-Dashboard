@@ -1,6 +1,9 @@
 
+
+
 import { useState, useEffect } from 'react';
 import { Feedback } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app';
 
@@ -11,12 +14,16 @@ interface UseFeedbackDataParams {
 }
 
 export const useFeedbackData = ({ start_date, end_date, clinic }: UseFeedbackDataParams) => {
+    const { session } = useAuth();
     const [feedback, setFeedback] = useState<Feedback[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!start_date || !end_date) return;
+        if (!start_date || !end_date || !session) {
+            if (!session) setLoading(false);
+            return;
+        }
 
         const fetchFeedback = async () => {
             try {
@@ -31,7 +38,9 @@ export const useFeedbackData = ({ start_date, end_date, clinic }: UseFeedbackDat
                     url.searchParams.append('clinic', clinic);
                 }
 
-                const response = await fetch(url.toString());
+                const response = await fetch(url.toString(), {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch feedback. Status: ${response.statusText}`);
@@ -53,7 +62,7 @@ export const useFeedbackData = ({ start_date, end_date, clinic }: UseFeedbackDat
         };
 
         fetchFeedback();
-    }, [start_date, end_date, clinic]);
+    }, [start_date, end_date, clinic, session]);
 
     return { feedback, loading, error };
 };

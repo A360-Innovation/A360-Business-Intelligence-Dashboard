@@ -6,6 +6,7 @@ import Logo from '../components/ui/Logo';
 import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useAuth } from '../contexts/AuthContext';
 
 // --- Type Definitions ---
 interface ChatMessage {
@@ -315,6 +316,7 @@ const ChatFooter: React.FC<ChatFooterProps> = ({ onSendMessage, isLoading, showS
 
 // --- Main Page Component ---
 const ChatPage: React.FC = () => {
+    const { session } = useAuth();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -353,7 +355,7 @@ const ChatPage: React.FC = () => {
     }
 
     const handleSendMessage = async (prompt: string) => {
-        if (isLoadingRef.current) return;
+        if (isLoadingRef.current || !session) return;
     
         abortControllerRef.current = new AbortController();
         const signal = abortControllerRef.current.signal;
@@ -370,7 +372,10 @@ const ChatPage: React.FC = () => {
         try {
             const response = await fetch('https://chat-stream-production.up.railway.app/chat/stream', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
                 body: JSON.stringify({
                     conversation_id: "demo-124", 
                     message: prompt,

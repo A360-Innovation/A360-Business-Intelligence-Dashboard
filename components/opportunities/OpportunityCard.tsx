@@ -4,7 +4,7 @@ import { Opportunity } from '../../types';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { cn } from '../../lib/utils';
-import { Lightbulb, HelpCircle } from 'lucide-react';
+import { Lightbulb, HelpCircle, Building2 } from 'lucide-react';
 import Tooltip from '../Tooltip';
 
 interface OpportunityCardProps {
@@ -49,8 +49,14 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({ opportunity }) => {
                     </div>
                 )}
             </CardContent>
-            <CardFooter className="flex justify-between items-center text-xs text-muted-foreground">
+            <CardFooter className="flex justify-between items-center text-xs text-muted-foreground flex-wrap gap-x-4 gap-y-2">
                 <p>Transcript ID: <span className="font-mono text-primary/80">{opportunity.transcript_id.slice(0, 8)}...</span></p>
+                {opportunity.clinic && (
+                    <div className="flex items-center gap-1.5" title={opportunity.clinic}>
+                        <Building2 className="h-3 w-3 flex-shrink-0" />
+                        <span className="truncate max-w-[120px]">{opportunity.clinic}</span>
+                    </div>
+                )}
                 {opportunity.confidence !== null && (
                      <Badge className={cn("text-xs", getConfidenceBadgeClass(opportunity.confidence))}>
                         Confidence: {(opportunity.confidence * 100).toFixed(0)}%

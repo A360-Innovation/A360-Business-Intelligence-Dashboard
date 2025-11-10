@@ -1,4 +1,6 @@
 
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useClinicPerformanceData } from '../hooks/useClinicPerformanceData';
 import Loader from '../components/icons/Loader';
@@ -6,7 +8,9 @@ import DatePicker from '../components/DatePicker';
 import DashboardCard from '../components/DashboardCard';
 import { cn } from '../lib/utils';
 import { ClinicPerformanceData } from '../types';
-import { ArrowUp, ArrowDown, ChevronDown } from 'lucide-react';
+import { ArrowUp, ArrowDown, ChevronDown, ShieldAlert } from 'lucide-react';
+import { useClinicsList } from '../hooks/useClinicsList';
+import { useAuth } from '../contexts/AuthContext';
 
 type SortKey = keyof ClinicPerformanceData | null;
 
@@ -16,29 +20,15 @@ const ClinicPerformancePage: React.FC = () => {
     oneMonthAgo.setMonth(today.getMonth() - 1);
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
+    const { isSuperAdmin } = useAuth();
     const [filters, setFilters] = useState({
         from_day: formatDate(oneMonthAgo),
         to_day: formatDate(today),
         clinic: 'All Clinics',
     });
     
-    const [clinics, setClinics] = useState<string[]>([]);
+    const { clinics } = useClinicsList();
     const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'ascending' | 'descending' }>({ key: 'totalConsultations', direction: 'descending' });
-
-     useEffect(() => {
-        const fetchClinics = async () => {
-            try {
-                const response = await fetch('https://rag-aesthetic-production.up.railway.app/clinics/');
-                if (!response.ok) throw new Error('Failed to fetch clinics');
-                const data = await response.json();
-                setClinics(['All Clinics', ...(data.clinics || [])]);
-            } catch (error) {
-                console.error('Error fetching clinics:', error);
-                setClinics(['All Clinics']);
-            }
-        };
-        fetchClinics();
-    }, []);
 
     const { performanceData, loading, error } = useClinicPerformanceData(filters);
 
@@ -96,6 +86,18 @@ const ClinicPerformancePage: React.FC = () => {
         else colorClass = 'text-destructive font-semibold';
         return <span className={colorClass}>{pct}%</span>;
     };
+
+    if (!isSuperAdmin) {
+        return (
+            <div className="p-4 sm:p-6 lg:p-8 flex items-center justify-center h-full">
+                <div className="text-center p-8 bg-card border border-border rounded-lg max-w-md">
+                    <ShieldAlert className="h-12 w-12 text-destructive mx-auto" />
+                    <h2 className="text-xl font-bold text-foreground mt-4">Access Denied</h2>
+                    <p className="text-muted-foreground mt-2">You do not have permission to view the Clinic Performance page. Please contact your administrator for access.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">

@@ -1,5 +1,6 @@
 
 
+
 import React, { useContext, useState, useEffect } from 'react';
 import { Podcast } from '../types';
 import { PlayerContext } from '../contexts/PlayerContext';
@@ -7,6 +8,7 @@ import { Play, Pause, Music, ListMusic, Download, Plus, X, ChevronsUpDown } from
 import { cn } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import Loader from '../components/icons/Loader';
+import { useAuth } from '../contexts/AuthContext';
 
 const rapportDetails = {
     summary: "Master the first three minutes of your consultation. We cover verbal and non-verbal cues to build trust and make patients feel heard.",
@@ -256,6 +258,7 @@ const GeneratePodcastModal: React.FC<{
 
 // --- Main Page Component ---
 const PodcastsPage: React.FC = () => {
+    const { session } = useAuth();
     const { currentPodcast, isPlaying, playPodcast, togglePlayPause } = useContext(PlayerContext);
     const [podcasts, setPodcasts] = useState<Podcast[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -263,10 +266,18 @@ const PodcastsPage: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     
     const fetchPodcasts = async () => {
+        if (!session) {
+            setError("Authentication required to view podcasts.");
+            setIsLoading(false);
+            return;
+        }
+
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('https://chat-stream-production.up.railway.app/podcast/list');
+            const response = await fetch('https://chat-stream-production.up.railway.app/podcast/list', {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
             if (!response.ok) {
                 throw new Error(`Failed to fetch podcasts. Status: ${response.status}`);
             }
@@ -288,7 +299,7 @@ const PodcastsPage: React.FC = () => {
     
     useEffect(() => {
         fetchPodcasts();
-    }, []);
+    }, [session]);
     
     const handlePlayClick = (podcast: Podcast) => {
         if (currentPodcast?.id === podcast.id) {
@@ -299,8 +310,13 @@ const PodcastsPage: React.FC = () => {
     };
 
     const handleGeneratePodcast = async (topic: string) => {
+        if (!session) {
+            throw new Error("Authentication is required to generate podcasts.");
+        }
         try {
-            const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/generate-audio?topic=${topic}&output_format=link&months=4`);
+            const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/generate-audio?topic=${topic}&output_format=link&months=4`, {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
             if (!response.ok) {
                 let errorMessage = 'Failed to generate podcast.';
                 try {

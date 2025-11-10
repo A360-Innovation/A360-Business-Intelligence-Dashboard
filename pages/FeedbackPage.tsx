@@ -6,6 +6,8 @@ import { ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, Meh } from 'lucide-re
 import { Badge } from '../components/ui/badge';
 import { cn } from '../lib/utils';
 import { Feedback } from '../types';
+import { useClinicsList } from '../hooks/useClinicsList';
+import { useAuth } from '../contexts/AuthContext';
 
 const FeedbackCard: React.FC<{ item: Feedback }> = ({ item }) => {
     const sentimentConfig = {
@@ -52,6 +54,7 @@ const FeedbackPage: React.FC = () => {
     oneMonthAgo.setMonth(today.getMonth() - 1);
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    const { isSuperAdmin } = useAuth();
 
     const [filters, setFilters] = useState({
         start_date: formatDate(oneMonthAgo),
@@ -59,24 +62,11 @@ const FeedbackPage: React.FC = () => {
         clinic: 'All Clinics',
     });
     
-    const [clinics, setClinics] = useState<string[]>([]);
-
-    useEffect(() => {
-        const fetchClinics = async () => {
-            try {
-                const response = await fetch('https://rag-aesthetic-production.up.railway.app/clinics/');
-                if (!response.ok) throw new Error('Failed to fetch clinics');
-                const data = await response.json();
-                setClinics(['All Clinics', ...(data.clinics || [])]);
-            } catch (error) {
-                console.error('Error fetching clinics:', error);
-                setClinics(['All Clinics']);
-            }
-        };
-        fetchClinics();
-    }, []);
-
-    const { feedback, loading, error } = useFeedbackData(filters);
+    const { clinics } = useClinicsList();
+    const { feedback, loading, error } = useFeedbackData({
+        ...filters,
+        clinic: isSuperAdmin ? filters.clinic : ''
+    });
 
     const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -98,21 +88,23 @@ const FeedbackPage: React.FC = () => {
                      <label htmlFor="end_date" className="text-xs font-medium text-muted-foreground">To</label>
                      <DatePicker id="end_date" name="end_date" value={filters.end_date} onChange={handleFilterChange} />
                 </div>
-                <div className="w-full sm:w-auto">
-                    <label htmlFor="clinic" className="text-xs font-medium text-muted-foreground">Clinic</label>
-                    <div className="relative mt-1">
-                        <select
-                            id="clinic"
-                            name="clinic"
-                            value={filters.clinic}
-                            onChange={handleFilterChange}
-                            className="appearance-none h-9 w-full sm:w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                        >
-                            {clinics.map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
-                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                {isSuperAdmin && (
+                    <div className="w-full sm:w-auto">
+                        <label htmlFor="clinic" className="text-xs font-medium text-muted-foreground">Clinic</label>
+                        <div className="relative mt-1">
+                            <select
+                                id="clinic"
+                                name="clinic"
+                                value={filters.clinic}
+                                onChange={handleFilterChange}
+                                className="appearance-none h-9 w-full sm:w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                            >
+                                {clinics.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
+                            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <main>

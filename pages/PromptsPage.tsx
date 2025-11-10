@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Prompt } from '../types';
 import { cn } from '../lib/utils';
@@ -9,10 +10,12 @@ import Loader from '../components/icons/Loader';
 import { Button } from '../components/ui/button';
 // Fix: Import the 'Tooltip' component.
 import Tooltip from '../components/Tooltip';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE_URL = 'https://chat-stream-production.up.railway.app/api';
 
 const PromptsPage: React.FC = () => {
+    const { session } = useAuth();
     const [prompts, setPrompts] = useState<Prompt[]>([]);
     const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
     const [editableContent, setEditableContent] = useState('');
@@ -27,10 +30,18 @@ const PromptsPage: React.FC = () => {
     const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const fetchPrompts = useCallback(async (selectFirst = false) => {
+        if (!session) {
+            setListError("Authentication required.");
+            setIsLoadingList(false);
+            return;
+        }
+
         setIsLoadingList(true);
         setListError(null);
         try {
-            const response = await fetch(`${API_BASE_URL}/prompts`);
+            const response = await fetch(`${API_BASE_URL}/prompts`, {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
             if (!response.ok) {
                 throw new Error('Failed to fetch prompt list.');
             }
@@ -41,32 +52,38 @@ const PromptsPage: React.FC = () => {
                 title: p.name,
                 category: p.category,
                 description: p.description,
-                prompt: p.content_preview || '', // Initially empty, will be lazy-loaded
+                prompt: p.content_preview || '',
             }));
             
             setPrompts(formattedPrompts);
             if (selectFirst && formattedPrompts.length > 0) {
                 handleSelectPrompt(formattedPrompts[0]);
+            } else if (formattedPrompts.length === 0) {
+                setSelectedPrompt(null);
+                setEditableContent('');
             }
         } catch (err) {
             setListError(err instanceof Error ? err.message : 'An unknown error occurred.');
         } finally {
             setIsLoadingList(false);
         }
-    }, []);
-
-    useEffect(() => {
-        fetchPrompts(true);
-    }, [fetchPrompts]);
+    }, [session]);
 
     const handleSelectPrompt = useCallback(async (prompt: Prompt) => {
+        if (!session) {
+            setEditorError("Authentication required.");
+            return;
+        }
+
         setIsEditorLoading(true);
         setEditorError(null);
         setSaveMessage(null);
         setSelectedPrompt(prompt);
 
         try {
-            const response = await fetch(`${API_BASE_URL}/prompts/${prompt.id}`);
+            const response = await fetch(`${API_BASE_URL}/prompts/${prompt.id}`, {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
             if (!response.ok) {
                 throw new Error(`Failed to load prompt content. Status: ${response.status}`);
             }
@@ -82,17 +99,25 @@ const PromptsPage: React.FC = () => {
         } finally {
             setIsEditorLoading(false);
         }
-    }, []);
+    }, [session]);
+
+    useEffect(() => {
+        fetchPrompts(true);
+    }, [fetchPrompts]);
+
 
     const handleSave = async () => {
-        if (!selectedPrompt || editableContent === selectedPrompt.prompt) return;
+        if (!selectedPrompt || editableContent === selectedPrompt.prompt || !session) return;
 
         setIsSaving(true);
         setSaveMessage(null);
         try {
             const response = await fetch(`${API_BASE_URL}/prompts/${selectedPrompt.id}`, {
                 method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.access_token}`
+                },
                 body: JSON.stringify({ content: editableContent, updated_by: 'A360 Dashboard' }),
             });
             if (!response.ok) {
@@ -112,13 +137,17 @@ const PromptsPage: React.FC = () => {
     };
     
     const handleReload = async () => {
+        if (!session) return;
         setIsReloading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/prompts/reload`, { method: 'POST' });
+            const response = await fetch(`${API_BASE_URL}/prompts/reload`, { 
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
              if (!response.ok) {
                 throw new Error('Failed to trigger reload.');
             }
-            await fetchPrompts(true); // Refetch list and select first item
+            await fetchPrompts(true);
         } catch (err) {
             setListError(err instanceof Error ? err.message : 'Reload failed.');
         } finally {

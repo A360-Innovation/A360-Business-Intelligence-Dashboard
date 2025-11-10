@@ -1,7 +1,9 @@
 
 
+
 import React, { createContext, useState, useRef, useEffect, ReactNode, useCallback } from 'react';
 import { Podcast, Subtitle } from '../types';
+import { useAuth } from './AuthContext';
 
 interface PlayerContextType {
   currentPodcast: Podcast | null;
@@ -46,6 +48,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { session } = useAuth();
 
   useEffect(() => {
     if (audioRef.current) {
@@ -64,12 +67,19 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
   }, [isPlaying, currentPodcast]);
 
   const playPodcast = useCallback(async (podcast: Podcast) => {
+    if (!session) {
+        console.error("Authentication required to play podcasts.");
+        return;
+    }
+
     if (currentPodcast?.id !== podcast.id) {
         setCurrentPodcast(podcast);
         setSubtitles([]); 
         
         try {
-            const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/${podcast.id}`);
+            const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/${podcast.id}`, {
+                headers: { 'Authorization': `Bearer ${session.access_token}` }
+            });
             if (!response.ok) {
                 throw new Error('Failed to fetch podcast details');
             }
@@ -98,7 +108,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
         }
     }
     setIsPlaying(true);
-  }, [currentPodcast]);
+  }, [currentPodcast, session]);
 
   const togglePlayPause = useCallback(() => {
     if (!currentPodcast) return;

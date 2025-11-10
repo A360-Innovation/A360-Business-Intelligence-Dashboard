@@ -1,6 +1,9 @@
 
+
+
 import { useState, useEffect } from 'react';
 import { Opportunity } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app';
 
@@ -8,14 +11,21 @@ interface UseOpportunitiesDataParams {
     type: string;
     day_from: string;
     day_to: string;
+    clinic: string;
 }
 
-export const useOpportunitiesData = ({ type, day_from, day_to }: UseOpportunitiesDataParams) => {
+export const useOpportunitiesData = ({ type, day_from, day_to, clinic }: UseOpportunitiesDataParams) => {
+    const { session } = useAuth();
     const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (!session) {
+            setLoading(false);
+            return;
+        }
+
         const fetchOpportunities = async () => {
             try {
                 setLoading(true);
@@ -25,8 +35,13 @@ export const useOpportunitiesData = ({ type, day_from, day_to }: UseOpportunitie
                 url.searchParams.append('type', type);
                 url.searchParams.append('day_from', day_from);
                 url.searchParams.append('day_to', day_to);
+                if (clinic && clinic !== 'All Clinics') {
+                    url.searchParams.append('clinic', clinic);
+                }
 
-                const response = await fetch(url.toString());
+                const response = await fetch(url.toString(), {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch opportunities. Status: ${response.statusText}`);
@@ -48,7 +63,7 @@ export const useOpportunitiesData = ({ type, day_from, day_to }: UseOpportunitie
         };
 
         fetchOpportunities();
-    }, [type, day_from, day_to]);
+    }, [type, day_from, day_to, clinic, session]);
 
     return { opportunities, loading, error };
 };

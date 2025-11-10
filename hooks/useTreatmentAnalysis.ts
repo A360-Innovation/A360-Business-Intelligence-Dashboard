@@ -1,19 +1,24 @@
 
+
+
 import { useState, useEffect } from 'react';
 import { TreatmentAnalysisData, TreatmentObjection, TreatmentCrossSell, TreatmentEducationData } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app/treatments';
 
 export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: string | null) => {
+    const { session } = useAuth();
     const [analysisData, setAnalysisData] = useState<TreatmentAnalysisData | null>(null);
     const [educationData, setEducationData] = useState<TreatmentEducationData | null>(null);
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!treatmentName) {
+        if (!treatmentName || !session) {
             setAnalysisData(null);
             setEducationData(null);
+            if (!session) setLoading(false);
             return;
         }
 
@@ -32,6 +37,7 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
             const encodedTreatment = encodeURIComponent(treatmentName.toLowerCase());
 
             try {
+                const headers = { 'Authorization': `Bearer ${session.access_token}` };
                 let queryParams = `?start_date=${start_date}&end_date=${end_date}`;
                 if (clinicName && clinicName !== 'All Clinics') {
                     queryParams += `&clinic=${encodeURIComponent(clinicName)}`;
@@ -52,11 +58,11 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
                     demographicsRes,
                     educationRes
                 ] = await Promise.all([
-                    fetch(endpoints.analysis),
-                    fetch(endpoints.objections),
-                    fetch(endpoints.crossSell),
-                    fetch(endpoints.demographics),
-                    fetch(endpoints.education),
+                    fetch(endpoints.analysis, { headers }),
+                    fetch(endpoints.objections, { headers }),
+                    fetch(endpoints.crossSell, { headers }),
+                    fetch(endpoints.demographics, { headers }),
+                    fetch(endpoints.education, { headers }),
                 ]);
 
                 const allResponses = [analysisRes, objectionsRes, crossSellRes, demographicsRes, educationRes];
@@ -115,7 +121,7 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
         };
 
         fetchAnalysisData();
-    }, [treatmentName, clinicName]);
+    }, [treatmentName, clinicName, session]);
 
     return { analysisData, educationData, loading, error };
 };

@@ -1,10 +1,14 @@
 
 
+
+
 import React, { useState } from 'react';
 import { useOpportunitiesData } from '../hooks/useOpportunitiesData';
 import Loader from '../components/icons/Loader';
 import FilterBar from '../components/opportunities/FilterBar';
 import OpportunityCard from '../components/opportunities/OpportunityCard';
+import { useClinicsList } from '../hooks/useClinicsList';
+import { useAuth } from '../contexts/AuthContext';
 
 const OpportunitiesPage: React.FC = () => {
     const today = new Date();
@@ -12,14 +16,20 @@ const OpportunitiesPage: React.FC = () => {
     oneMonthAgo.setMonth(today.getMonth() - 1);
 
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    const { isSuperAdmin } = useAuth();
 
     const [filters, setFilters] = useState({
         type: 'objection_handling',
         day_from: formatDate(oneMonthAgo),
         day_to: formatDate(today),
+        clinic: 'All Clinics',
     });
     
-    const { opportunities, loading, error } = useOpportunitiesData(filters);
+    const { clinics } = useClinicsList();
+    const { opportunities, loading, error } = useOpportunitiesData({
+        ...filters,
+        clinic: isSuperAdmin ? filters.clinic : '',
+    });
 
     return (
         <div className="p-4 sm:p-6 lg:p-8">
@@ -28,7 +38,12 @@ const OpportunitiesPage: React.FC = () => {
                 <p className="text-muted-foreground mt-1">Review key moments from consultations to refine your skills and strategies.</p>
             </header>
             
-            <FilterBar filters={filters} setFilters={setFilters} />
+            <FilterBar 
+                filters={filters} 
+                setFilters={setFilters}
+                clinics={clinics}
+                isSuperAdmin={isSuperAdmin}
+            />
 
             <main className="mt-6">
                 {loading && (

@@ -1,9 +1,12 @@
 
 
+
+
+
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut, TrendingUp, MessageSquare, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -13,34 +16,41 @@ interface SidebarProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-const categorizedNavItems = [
-  {
-    category: 'Analytics',
-    items: [
-      { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-      { id: 'opportunities', label: 'Opportunities', icon: Target },
-      { id: 'treatments', label: 'Treatments', icon: Beaker },
-    ]
-  },
-  {
-    category: 'AI Tools',
-    items: [
-      { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
-      { id: 'prompts', label: 'Prompt Library', icon: BookText },
-      { id: 'podcasts', label: 'Podcasts', icon: Mic },
-    ]
-  }
-];
-
-const settingsNavItem = { id: 'settings', label: 'Settings', icon: Settings };
-
 const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, setIsOpen }) => {
-  const { logout } = useAuth();
+  const { logout, isSuperAdmin } = useAuth();
   
   const handleLinkClick = (page: Page) => {
     setCurrentPage(page);
     setIsOpen(false); // Close sidebar on navigation on mobile
   };
+
+  const categorizedNavItems = [
+    {
+      category: 'Analytics',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'opportunities', label: 'Opportunities', icon: Target },
+        { id: 'treatments', label: 'Treatments', icon: Beaker },
+      ]
+    },
+    {
+        category: 'Reporting',
+        items: [
+          { id: 'kpis', label: 'KPIs', icon: TrendingUp },
+          ...(isSuperAdmin ? [{ id: 'clinicPerformance', label: 'Clinic Performance', icon: BarChart3 }] : [])
+        ]
+    },
+    {
+      category: 'AI Tools',
+      items: [
+        { id: 'chat', label: 'A360 Chat', icon: BotMessageSquare },
+        { id: 'prompts', label: 'Prompt Library', icon: BookText },
+        { id: 'podcasts', label: 'Podcasts', icon: Mic },
+      ]
+    }
+  ];
+
+  const settingsNavItem = { id: 'settings', label: 'Settings', icon: Settings };
 
   return (
     <>

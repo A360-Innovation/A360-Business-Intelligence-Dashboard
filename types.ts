@@ -1,7 +1,10 @@
 
 
 
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings';
+
+
+
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -226,6 +229,7 @@ export interface Opportunity {
     confidence: number | null;
     snippet: string;
     rationale: string | null;
+    clinic?: string;
 }
 
 // Types for Prompt Library
@@ -306,6 +310,13 @@ export interface TreatmentEducationData {
     common_education_gaps: CommonEducationGap[];
 }
 // Fix: Add missing type definitions to resolve import errors.
+// Types for Feedback Page
+export type FeedbackSentiment = 'positive' | 'negative' | 'neutral';
+export interface Feedback {
+    label: FeedbackSentiment;
+    snippet: string;
+}
+
 // Types for KPIs Page
 export interface KpiData {
     day: string;
@@ -316,12 +327,6 @@ export interface KpiData {
     objections_count: number | null;
     top_problems: string[] | null;
     top_procedures: string[] | null;
-}
-
-// Types for Feedback Page
-export interface Feedback {
-    label: 'positive' | 'negative' | 'neutral';
-    snippet: string;
 }
 
 // Types for Clinic Performance Page

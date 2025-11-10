@@ -1,6 +1,9 @@
 
+
+
 import { useState, useEffect } from 'react';
 import { KpiData, ClinicPerformanceData } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app';
 
@@ -11,12 +14,16 @@ interface UseClinicPerformanceDataParams {
 }
 
 export const useClinicPerformanceData = ({ from_day, to_day, clinic }: UseClinicPerformanceDataParams) => {
+    const { session } = useAuth();
     const [performanceData, setPerformanceData] = useState<ClinicPerformanceData[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!from_day || !to_day) return;
+        if (!from_day || !to_day || !session) {
+            if (!session) setLoading(false);
+            return;
+        }
 
         const fetchPerformanceData = async () => {
             try {
@@ -32,7 +39,9 @@ export const useClinicPerformanceData = ({ from_day, to_day, clinic }: UseClinic
                     url.searchParams.append('clinic', clinic);
                 }
 
-                const response = await fetch(url.toString());
+                const response = await fetch(url.toString(), {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
 
                 if (!response.ok) {
                     throw new Error(`Failed to fetch KPI data. Status: ${response.statusText}`);
@@ -108,7 +117,7 @@ export const useClinicPerformanceData = ({ from_day, to_day, clinic }: UseClinic
         };
 
         fetchPerformanceData();
-    }, [from_day, to_day, clinic]);
+    }, [from_day, to_day, clinic, session]);
 
     return { performanceData, loading, error };
 };

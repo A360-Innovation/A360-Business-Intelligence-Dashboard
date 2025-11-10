@@ -8,39 +8,23 @@ import { useTreatmentAnalysis } from '../hooks/useTreatmentAnalysis';
 import { cn } from '../lib/utils';
 import EducationEffectivenessDisplay from '../components/treatments/EducationEffectivenessDisplay';
 import { ChevronDown } from 'lucide-react';
+import { useClinicsList } from '../hooks/useClinicsList';
+import { useAuth } from '../contexts/AuthContext';
 
 const TreatmentAnalysisPage: React.FC = () => {
-    // Fix: Provide the required date range arguments to the useDashboardData hook.
-    // Using a default of the last 3 months to align with the analysis fetching logic.
     const today = new Date();
     const threeMonthsAgo = new Date();
     threeMonthsAgo.setMonth(today.getMonth() - 3);
     const formatDate = (date: Date) => date.toISOString().split('T')[0];
 
-    const [clinics, setClinics] = useState<string[]>([]);
+    const { isSuperAdmin } = useAuth();
+    const { clinics } = useClinicsList();
     const [selectedClinic, setSelectedClinic] = useState<string>('All Clinics');
-
-    useEffect(() => {
-        const fetchClinics = async () => {
-            try {
-                const response = await fetch('https://rag-aesthetic-production.up.railway.app/clinics/');
-                if (!response.ok) {
-                    throw new Error('Failed to fetch clinics');
-                }
-                const data = await response.json();
-                setClinics(['All Clinics', ...(data.clinics || [])]);
-            } catch (error) {
-                console.error('Error fetching clinics:', error);
-                setClinics(['All Clinics']);
-            }
-        };
-        fetchClinics();
-    }, []);
 
     const { data: dashboardData, loading: dashboardLoading, error: dashboardError } = useDashboardData({
         startDate: formatDate(threeMonthsAgo),
         endDate: formatDate(today),
-        clinic: selectedClinic,
+        clinic: isSuperAdmin ? selectedClinic : '',
     });
     const [selectedTreatment, setSelectedTreatment] = useState<Procedure | null>(null);
     const [activeView, setActiveView] = useState<'analysis' | 'education'>('analysis');
@@ -50,7 +34,7 @@ const TreatmentAnalysisPage: React.FC = () => {
         educationData, 
         loading: analysisLoading, 
         error: analysisError 
-    } = useTreatmentAnalysis(selectedTreatment?.name || null, selectedClinic);
+    } = useTreatmentAnalysis(selectedTreatment?.name || null, isSuperAdmin ? selectedClinic : '');
 
     if (dashboardLoading) {
         return (
@@ -130,20 +114,22 @@ const TreatmentAnalysisPage: React.FC = () => {
                                 <h1 className="text-3xl font-bold text-foreground">{selectedTreatment.name}</h1>
                                 <p className="text-muted-foreground mt-1">Deep dive into performance, patient profile, and communication strategies.</p>
                             </div>
-                             <div className="mt-4 sm:mt-0">
-                                <label htmlFor="clinic-select" className="sr-only">Select Clinic</label>
-                                <div className="relative">
-                                    <select
-                                        id="clinic-select"
-                                        value={selectedClinic}
-                                        onChange={(e) => setSelectedClinic(e.target.value)}
-                                        className="appearance-none h-9 w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                                    >
-                                        {clinics.map(c => <option key={c} value={c}>{c}</option>)}
-                                    </select>
-                                    <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                            {isSuperAdmin && (
+                                <div className="mt-4 sm:mt-0">
+                                    <label htmlFor="clinic-select" className="sr-only">Select Clinic</label>
+                                    <div className="relative">
+                                        <select
+                                            id="clinic-select"
+                                            value={selectedClinic}
+                                            onChange={(e) => setSelectedClinic(e.target.value)}
+                                            className="appearance-none h-9 w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                        >
+                                            {clinics.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                                    </div>
                                 </div>
-                            </div>
+                             )}
                         </div>
                         <nav className="mt-4 -mb-px flex space-x-6">
                             <button
