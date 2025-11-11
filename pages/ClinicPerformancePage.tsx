@@ -1,10 +1,7 @@
-
-
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useClinicPerformanceData } from '../hooks/useClinicPerformanceData';
 import Loader from '../components/icons/Loader';
-import DatePicker from '../components/DatePicker';
+import DateRangePicker from '../components/DateRangePicker';
 import DashboardCard from '../components/DashboardCard';
 import { cn } from '../lib/utils';
 import { ClinicPerformanceData } from '../types';
@@ -108,12 +105,11 @@ const ClinicPerformancePage: React.FC = () => {
             
             <div className="p-4 bg-card border border-border rounded-lg flex flex-col sm:flex-row items-center gap-4 mb-6">
                 <div className="w-full sm:w-auto">
-                    <label htmlFor="from_day" className="text-xs font-medium text-muted-foreground">From</label>
-                    <DatePicker id="from_day" name="from_day" value={filters.from_day} onChange={handleFilterChange} />
-                </div>
-                <div className="w-full sm:w-auto">
-                     <label htmlFor="to_day" className="text-xs font-medium text-muted-foreground">To</label>
-                     <DatePicker id="to_day" name="to_day" value={filters.to_day} onChange={handleFilterChange} />
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Date Range</label>
+                    <DateRangePicker
+                        value={{ from: filters.from_day, to: filters.to_day }}
+                        onChange={({ from, to }) => setFilters(prev => ({ ...prev, from_day: from, to_day: to }))}
+                    />
                 </div>
                  <div className="w-full sm:w-auto">
                     <label htmlFor="clinic" className="text-xs font-medium text-muted-foreground">Clinic</label>

@@ -1,9 +1,7 @@
-
-
-
 import React from 'react';
 import { Button } from '../ui/button';
 import { ChevronDown } from 'lucide-react';
+import DateRangePicker from '../DateRangePicker';
 
 interface FilterBarProps {
   filters: { type: string; day_from: string; day_to: string; clinic: string };
@@ -19,6 +17,10 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, setFilters, clinics, isS
             ...filters,
             [e.target.name]: e.target.value
         });
+    };
+
+    const handleDateRangeChange = ({ from, to }: { from: string; to: string }) => {
+        setFilters(prev => ({ ...prev, day_from: from, day_to: to }));
     };
     
     return (
@@ -55,26 +57,11 @@ const FilterBar: React.FC<FilterBarProps> = ({ filters, setFilters, clinics, isS
                     </div>
                 </div>
             )}
-            <div className="w-full sm:w-auto">
-                 <label htmlFor="day_from" className="text-xs font-medium text-muted-foreground">From</label>
-                 <input 
-                    type="date"
-                    id="day_from"
-                    name="day_from"
-                    value={filters.day_from}
-                    onChange={handleInputChange}
-                    className="mt-1 appearance-none w-full bg-secondary border border-transparent rounded-md h-9 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                />
-            </div>
-            <div className="w-full sm:w-auto">
-                 <label htmlFor="day_to" className="text-xs font-medium text-muted-foreground">To</label>
-                 <input 
-                    type="date"
-                    id="day_to"
-                    name="day_to"
-                    value={filters.day_to}
-                    onChange={handleInputChange}
-                    className="mt-1 appearance-none w-full bg-secondary border border-transparent rounded-md h-9 px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+            <div className="w-full sm:w-auto sm:ml-auto">
+                 <label className="text-xs font-medium text-muted-foreground block mb-1">Date Range</label>
+                 <DateRangePicker
+                    value={{ from: filters.day_from, to: filters.day_to }}
+                    onChange={handleDateRangeChange}
                 />
             </div>
         </div>

@@ -1,10 +1,5 @@
 
-
-
-
-
-
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance';
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance' | 'feedback';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 

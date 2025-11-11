@@ -1,8 +1,4 @@
 
-
-
-
-
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
@@ -37,6 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
         category: 'Reporting',
         items: [
           { id: 'kpis', label: 'KPIs', icon: TrendingUp },
+          { id: 'feedback', label: 'Feedback', icon: MessageSquare },
           ...(isSuperAdmin ? [{ id: 'clinicPerformance', label: 'Clinic Performance', icon: BarChart3 }] : [])
         ]
     },

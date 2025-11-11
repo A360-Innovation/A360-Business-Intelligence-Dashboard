@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useState } from 'react';
 import { useOpportunitiesData } from '../hooks/useOpportunitiesData';
 import Loader from '../components/icons/Loader';
@@ -45,7 +41,7 @@ const OpportunitiesPage: React.FC = () => {
                 isSuperAdmin={isSuperAdmin}
             />
 
-            <main className="mt-6">
+            <div className="mt-6">
                 {loading && (
                     <div className="flex items-center justify-center h-64">
                         <div className="flex flex-col items-center gap-4">
@@ -76,7 +72,7 @@ const OpportunitiesPage: React.FC = () => {
                         )}
                     </div>
                 )}
-            </main>
+            </div>
         </div>
     );
 };

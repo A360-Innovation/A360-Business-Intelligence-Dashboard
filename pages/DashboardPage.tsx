@@ -6,8 +6,7 @@ import TopProcedures from '../components/TopProcedures';
 import TreatmentTrendsChart from '../components/TreatmentTrendsChart';
 import PatientExperienceChart from '../components/PatientExperienceChart';
 import WorkflowQuality from '../components/WorkflowQuality';
-import DemographicsChart from '../components/DemographicsChart';
-import SeasonalTrends from '../components/SeasonalTrends';
+import MarketingOpportunities from '../components/MarketingOpportunities';
 import SalesExcellence from '../components/SalesExcellence';
 import AnalysisFields from '../components/AnalysisFields';
 import NarrativePane from '../components/NarrativePane';
@@ -16,7 +15,7 @@ import { cn } from '../lib/utils';
 import { Download, HelpCircle, ChevronDown } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
 import Loader from '../components/icons/Loader';
-import DatePicker from '../components/DatePicker';
+import DateRangePicker from '../components/DateRangePicker';
 import { useAuth } from '../contexts/AuthContext';
 import { useClinicsList } from '../hooks/useClinicsList';
 
@@ -57,13 +56,6 @@ const DashboardPage: React.FC = () => {
   });
   const tourRef = useRef<any>(null);
 
-
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setDateRange(prev => ({
-          ...prev,
-          [e.target.name]: e.target.value
-      }));
-  };
 
   useEffect(() => {
     if (typeof Shepherd === 'undefined' || loading || error) {
@@ -229,14 +221,10 @@ const DashboardPage: React.FC = () => {
                 </div>
               </div>
             )}
-            <div>
-              <label htmlFor="startDate" className="sr-only">Start Date</label>
-              <DatePicker id="startDate" name="startDate" value={dateRange.startDate} onChange={handleDateChange} />
-            </div>
-            <div>
-              <label htmlFor="endDate" className="sr-only">End Date</label>
-              <DatePicker id="endDate" name="endDate" value={dateRange.endDate} onChange={handleDateChange} />
-            </div>
+            <DateRangePicker
+                value={{ from: dateRange.startDate, to: dateRange.endDate }}
+                onChange={({ from, to }) => setDateRange({ startDate: from, endDate: to })}
+            />
           </div>
         <Button variant="outline" size="sm" onClick={() => tourRef.current?.start()} className="h-9">
             <HelpCircle className="h-4 w-4 mr-2"/>
@@ -331,12 +319,9 @@ const DashboardPage: React.FC = () => {
         </div>
 
         {/* Growth Opportunities */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <DemographicsChart
+        <div className="grid grid-cols-1 gap-6">
+            <MarketingOpportunities
                 demographicsData={data.demographics}
-                onItemClick={(title) => handleOpenNarrative(title)}
-            />
-            <SeasonalTrends
                 seasonalData={data.seasonalTrends}
                 onItemClick={(title) => handleOpenNarrative(title)}
             />

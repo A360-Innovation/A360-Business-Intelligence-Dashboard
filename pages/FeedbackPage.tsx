@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useFeedbackData } from '../hooks/useFeedbackData';
 import Loader from '../components/icons/Loader';
-import DatePicker from '../components/DatePicker';
+import DateRangePicker from '../components/DateRangePicker';
 import { ChevronDown, MessageCircle, ThumbsUp, ThumbsDown, Meh } from 'lucide-react';
 import { Badge } from '../components/ui/badge';
 import { cn } from '../lib/utils';
@@ -80,13 +80,12 @@ const FeedbackPage: React.FC = () => {
             </header>
             
             <div className="p-4 bg-card border border-border rounded-lg flex flex-col sm:flex-row items-center gap-4 mb-6">
-                <div className="w-full sm:w-auto">
-                    <label htmlFor="start_date" className="text-xs font-medium text-muted-foreground">From</label>
-                    <DatePicker id="start_date" name="start_date" value={filters.start_date} onChange={handleFilterChange} />
-                </div>
-                <div className="w-full sm:w-auto">
-                     <label htmlFor="end_date" className="text-xs font-medium text-muted-foreground">To</label>
-                     <DatePicker id="end_date" name="end_date" value={filters.end_date} onChange={handleFilterChange} />
+                 <div className="w-full sm:w-auto">
+                    <label className="text-xs font-medium text-muted-foreground block mb-1">Date Range</label>
+                    <DateRangePicker
+                        value={{ from: filters.start_date, to: filters.end_date }}
+                        onChange={({ from, to }) => setFilters(prev => ({ ...prev, start_date: from, end_date: to }))}
+                    />
                 </div>
                 {isSuperAdmin && (
                     <div className="w-full sm:w-auto">
