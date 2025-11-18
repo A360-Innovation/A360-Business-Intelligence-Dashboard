@@ -99,16 +99,16 @@ const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demogra
         </div>
 
         {/* Seasonal Trends */}
-        <div>
+        <div className="flex flex-col h-full">
           <h4 className="font-semibold text-foreground mb-3">Seasonal Trends</h4>
-           <div className="grid grid-cols-2 gap-4 h-full">
+           <div className="grid grid-cols-2 gap-4 flex-1">
               {seasonalData.map((item) => {
                 const Icon = seasonIcons[item.season];
                 return (
                   <div
                     key={item.season}
                     onClick={() => onItemClick(`Seasonal Trend: ${item.season}`)}
-                    className="cursor-pointer p-4 rounded-lg border hover:bg-accent transition-colors flex flex-col items-center justify-center text-center group"
+                    className="cursor-pointer p-4 rounded-lg border hover:bg-accent transition-colors flex flex-col items-center justify-center text-center group h-full"
                   >
                     {Icon && <Icon className="h-6 w-6 text-primary mb-2 group-hover:scale-110 transition-transform" />}
                     <p className="font-semibold text-sm text-foreground">{item.season}</p>
