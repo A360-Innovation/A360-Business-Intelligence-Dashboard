@@ -7,17 +7,12 @@ import { useClinicsList } from '../hooks/useClinicsList';
 import { useAuth } from '../contexts/AuthContext';
 
 const OpportunitiesPage: React.FC = () => {
-    const today = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(today.getMonth() - 1);
-
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
     const { isSuperAdmin } = useAuth();
 
     const [filters, setFilters] = useState({
         type: 'objection_handling',
-        day_from: formatDate(oneMonthAgo),
-        day_to: formatDate(today),
+        day_from: '2025-06-01',
+        day_to: '2025-10-31',
         clinic: 'All Clinics',
     });
     

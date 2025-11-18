@@ -10,20 +10,20 @@ import EducationEffectivenessDisplay from '../components/treatments/EducationEff
 import { ChevronDown } from 'lucide-react';
 import { useClinicsList } from '../hooks/useClinicsList';
 import { useAuth } from '../contexts/AuthContext';
+import DateRangePicker from '../components/DateRangePicker';
 
 const TreatmentAnalysisPage: React.FC = () => {
-    const today = new Date();
-    const threeMonthsAgo = new Date();
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
-
     const { isSuperAdmin } = useAuth();
     const { clinics } = useClinicsList();
     const [selectedClinic, setSelectedClinic] = useState<string>('All Clinics');
+    const [dateRange, setDateRange] = useState({
+        from: '2025-06-01',
+        to: '2025-10-31',
+    });
 
     const { data: dashboardData, loading: dashboardLoading, error: dashboardError } = useDashboardData({
-        startDate: formatDate(threeMonthsAgo),
-        endDate: formatDate(today),
+        startDate: dateRange.from,
+        endDate: dateRange.to,
         clinic: isSuperAdmin ? selectedClinic : '',
     });
     const [selectedTreatment, setSelectedTreatment] = useState<Procedure | null>(null);
@@ -34,7 +34,12 @@ const TreatmentAnalysisPage: React.FC = () => {
         educationData, 
         loading: analysisLoading, 
         error: analysisError 
-    } = useTreatmentAnalysis(selectedTreatment?.name || null, isSuperAdmin ? selectedClinic : '');
+    } = useTreatmentAnalysis(
+        selectedTreatment?.name || null, 
+        isSuperAdmin ? selectedClinic : '',
+        dateRange.from,
+        dateRange.to
+    );
 
     if (dashboardLoading) {
         return (
@@ -109,27 +114,30 @@ const TreatmentAnalysisPage: React.FC = () => {
             <div className="flex-1 flex flex-col overflow-hidden">
                 {selectedTreatment && (
                     <header className="p-4 sm:p-6 lg:p-8 pb-0 border-b border-border flex-shrink-0">
-                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                             <div>
                                 <h1 className="text-3xl font-bold text-foreground">{selectedTreatment.name}</h1>
                                 <p className="text-muted-foreground mt-1">Deep dive into performance, patient profile, and communication strategies.</p>
                             </div>
-                            {isSuperAdmin && (
-                                <div className="mt-4 sm:mt-0">
-                                    <label htmlFor="clinic-select" className="sr-only">Select Clinic</label>
+                            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+                                <DateRangePicker
+                                    value={dateRange}
+                                    onChange={setDateRange}
+                                />
+                                {isSuperAdmin && (
                                     <div className="relative">
                                         <select
                                             id="clinic-select"
                                             value={selectedClinic}
                                             onChange={(e) => setSelectedClinic(e.target.value)}
-                                            className="appearance-none h-9 w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                            className="appearance-none h-9 w-full sm:w-48 rounded-md border border-input bg-card pl-3 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                         >
                                             {clinics.map(c => <option key={c} value={c}>{c}</option>)}
                                         </select>
                                         <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                                     </div>
-                                </div>
-                             )}
+                                )}
+                            </div>
                         </div>
                         <nav className="mt-4 -mb-px flex space-x-6">
                             <button

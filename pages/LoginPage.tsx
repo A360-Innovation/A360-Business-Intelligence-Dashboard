@@ -42,8 +42,8 @@ const LoginPage: React.FC = () => {
   };
   
   const handleQuickLogin = () => {
-    const demoEmail = 'demo@aesthetics360.com';
-    const demoPassword = 'password123';
+    const demoEmail = 'admin@aesthetics360.com';
+    const demoPassword = 'adminCoachTool25!';
     setEmail(demoEmail);
     setPassword(demoPassword);
     performLogin(demoEmail, demoPassword);

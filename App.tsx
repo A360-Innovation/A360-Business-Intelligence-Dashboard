@@ -16,7 +16,6 @@ import PromptsPage from './pages/PromptsPage';
 import SettingsPage from './pages/SettingsPage';
 import KpisPage from './pages/KpisPage';
 import ClinicPerformancePage from './pages/ClinicPerformancePage';
-import FeedbackPage from './pages/FeedbackPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import ExpandedPlayer from './components/ExpandedPlayer';
@@ -46,8 +45,7 @@ const AuthenticatedApp: React.FC = () => {
     prompts: 'Prompt Library',
     settings: 'Settings',
     kpis: 'Daily KPIs',
-    clinicPerformance: 'Clinic Performance',
-    feedback: 'User Feedback'
+    clinicPerformance: 'Clinic Performance'
   };
 
   return (
@@ -115,7 +113,6 @@ const AuthenticatedApp: React.FC = () => {
           {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'kpis' && <KpisPage />}
           {currentPage === 'clinicPerformance' && <ClinicPerformancePage />}
-          {currentPage === 'feedback' && <FeedbackPage />}
         </main>
         {currentPodcast && <Player />}
         <ExpandedPlayer />

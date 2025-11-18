@@ -17,6 +17,7 @@ const presetRanges = [
     { label: 'Last 7 Days', days: 6 }, // 6 days ago to today = 7 days total
     { label: 'Last 30 Days', days: 29 },
     { label: 'Last 90 Days', days: 89 },
+    { label: 'Last 12 Months', days: 365 },
     { label: 'This Month', getRange: () => {
         const now = new Date();
         return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
@@ -26,6 +27,10 @@ const presetRanges = [
         const from = new Date(now.getFullYear(), now.getMonth() - 1, 1);
         const to = new Date(now.getFullYear(), now.getMonth(), 0);
         return { from, to };
+    }},
+    { label: 'Year to Date', getRange: () => {
+        const now = new Date();
+        return { from: new Date(now.getFullYear(), 0, 1), to: now };
     }}
 ];
 

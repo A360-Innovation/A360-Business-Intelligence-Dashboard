@@ -31,17 +31,10 @@ const DashboardPage: React.FC = () => {
   const [analysisCache, setAnalysisCache] = useState<{ [key: string]: string }>({});
   const { session, isSuperAdmin } = useAuth();
 
-  const formatDate = (date: Date) => date.toISOString().split('T')[0];
-
   const getInitialDateRange = () => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    // Month is 0-indexed: 4 is May, 8 is September
-    const startDate = new Date(currentYear, 4, 1);
-    const endDate = new Date(currentYear, 8, 30);
     return {
-      startDate: formatDate(startDate),
-      endDate: formatDate(endDate),
+      startDate: '2025-06-01',
+      endDate: '2025-10-31',
     };
   };
 

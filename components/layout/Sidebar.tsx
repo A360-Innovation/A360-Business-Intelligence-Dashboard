@@ -2,7 +2,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut, TrendingUp, MessageSquare, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut, TrendingUp, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -33,7 +33,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
         category: 'Reporting',
         items: [
           { id: 'kpis', label: 'KPIs', icon: TrendingUp },
-          { id: 'feedback', label: 'Feedback', icon: MessageSquare },
           ...(isSuperAdmin ? [{ id: 'clinicPerformance', label: 'Clinic Performance', icon: BarChart3 }] : [])
         ]
     },

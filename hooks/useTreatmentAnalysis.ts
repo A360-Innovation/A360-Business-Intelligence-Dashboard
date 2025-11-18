@@ -1,13 +1,11 @@
 
-
-
 import { useState, useEffect } from 'react';
 import { TreatmentAnalysisData, TreatmentObjection, TreatmentCrossSell, TreatmentEducationData } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE = 'https://rag-aesthetic-production.up.railway.app/treatments';
 
-export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: string | null) => {
+export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: string | null, startDate: string, endDate: string) => {
     const { session } = useAuth();
     const [analysisData, setAnalysisData] = useState<TreatmentAnalysisData | null>(null);
     const [educationData, setEducationData] = useState<TreatmentEducationData | null>(null);
@@ -15,7 +13,7 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!treatmentName || !session) {
+        if (!treatmentName || !session || !startDate || !endDate) {
             setAnalysisData(null);
             setEducationData(null);
             if (!session) setLoading(false);
@@ -26,19 +24,11 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
             setLoading(true);
             setError(null);
             
-            const endDate = new Date();
-            const startDate = new Date();
-            startDate.setMonth(endDate.getMonth() - 3);
-
-            const formatDate = (date: Date) => date.toISOString().split('T')[0];
-            const start_date = formatDate(startDate);
-            const end_date = formatDate(endDate);
-            
             const encodedTreatment = encodeURIComponent(treatmentName.toLowerCase());
 
             try {
                 const headers = { 'Authorization': `Bearer ${session.access_token}` };
-                let queryParams = `?start_date=${start_date}&end_date=${end_date}`;
+                let queryParams = `?start_date=${startDate}&end_date=${endDate}`;
                 if (clinicName && clinicName !== 'All Clinics') {
                     queryParams += `&clinic=${encodeURIComponent(clinicName)}`;
                 }
@@ -121,7 +111,7 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
         };
 
         fetchAnalysisData();
-    }, [treatmentName, clinicName, session]);
+    }, [treatmentName, clinicName, startDate, endDate, session]);
 
     return { analysisData, educationData, loading, error };
 };

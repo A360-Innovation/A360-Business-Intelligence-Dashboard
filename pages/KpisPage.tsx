@@ -10,16 +10,11 @@ import { useClinicsList } from '../hooks/useClinicsList';
 import { useAuth } from '../contexts/AuthContext';
 
 const KpisPage: React.FC = () => {
-    const today = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(today.getMonth() - 1);
-
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
     const { isSuperAdmin } = useAuth();
 
     const [filters, setFilters] = useState({
-        from_day: formatDate(oneMonthAgo),
-        to_day: formatDate(today),
+        from_day: '2025-06-01',
+        to_day: '2025-10-31',
         clinic: 'All Clinics',
     });
     

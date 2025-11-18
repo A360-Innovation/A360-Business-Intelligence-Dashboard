@@ -1,5 +1,5 @@
 
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance' | 'feedback';
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -304,13 +304,6 @@ export interface TreatmentEducationData {
     label_distribution: EducationLabelDistribution[];
     common_education_gaps: CommonEducationGap[];
 }
-// Fix: Add missing type definitions to resolve import errors.
-// Types for Feedback Page
-export type FeedbackSentiment = 'positive' | 'negative' | 'neutral';
-export interface Feedback {
-    label: FeedbackSentiment;
-    snippet: string;
-}
 
 // Types for KPIs Page
 export interface KpiData {
@@ -331,4 +324,10 @@ export interface ClinicPerformanceData {
     totalObjections: number;
     avgSatisfaction: number | null;
     avgEducation: number | null;
+}
+
+// Types for Feedback Page
+export interface Feedback {
+    label: 'positive' | 'negative' | 'neutral';
+    snippet: string;
 }

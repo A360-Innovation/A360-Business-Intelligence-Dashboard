@@ -49,16 +49,11 @@ const FeedbackCard: React.FC<{ item: Feedback }> = ({ item }) => {
 
 
 const FeedbackPage: React.FC = () => {
-    const today = new Date();
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(today.getMonth() - 1);
-
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
     const { isSuperAdmin } = useAuth();
 
     const [filters, setFilters] = useState({
-        start_date: formatDate(oneMonthAgo),
-        end_date: formatDate(today),
+        start_date: '2025-06-01',
+        end_date: '2025-10-31',
         clinic: 'All Clinics',
     });
     
