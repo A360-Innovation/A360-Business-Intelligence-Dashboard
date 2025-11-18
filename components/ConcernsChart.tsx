@@ -9,7 +9,6 @@ import { cn } from '../lib/utils';
 const COLORS = ['hsl(212, 33%, 49%)', 'hsl(211, 35%, 60%)', 'hsl(214, 32%, 74%)', 'hsl(217, 33%, 86%)'];
 const DRILLDOWN_COLORS = ['hsl(212, 33%, 39%)', 'hsl(212, 33%, 49%)', 'hsl(211, 35%, 60%)', 'hsl(214, 32%, 74%)'];
 
-// Fix: Define the props interface for the component.
 interface ConcernsChartProps {
   data: Concern[];
   onSliceClick: (name: string) => void;
@@ -92,16 +91,16 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
               </Pie>
             </PieChart>
           </ResponsiveContainer>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none text-center transition-opacity duration-200">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center justify-center pointer-events-none text-center transition-opacity duration-200 w-[120px]">
               {hoveredData ? (
                   <>
-                      <span className="text-4xl font-bold text-foreground">{hoveredData.value}%</span>
-                      <span className="text-sm text-muted-foreground -mt-1 truncate max-w-[120px]">{hoveredData.name}</span>
+                      <span className="text-3xl font-bold text-foreground">{hoveredData.value}%</span>
+                      <span className="text-xs text-muted-foreground mt-1 leading-tight break-words w-full">{hoveredData.name}</span>
                   </>
               ) : (
                    <>
-                      <span className="text-sm text-muted-foreground">Top Concern</span>
-                      <span className="text-3xl font-bold text-foreground truncate max-w-[140px]">{activeData[0]?.name}</span>
+                      <span className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Top Concern</span>
+                      <span className="text-xl font-bold text-foreground leading-tight break-words w-full">{activeData[0]?.name}</span>
                    </>
               )}
           </div>
