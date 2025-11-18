@@ -325,9 +325,3 @@ export interface ClinicPerformanceData {
     avgSatisfaction: number | null;
     avgEducation: number | null;
 }
-
-// Types for Feedback Page
-export interface Feedback {
-    snippet: string;
-    label: 'positive' | 'negative' | 'neutral';
-}
