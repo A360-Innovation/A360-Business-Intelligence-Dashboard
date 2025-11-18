@@ -14,6 +14,7 @@ interface DateRangePickerProps {
 }
 
 const presetRanges = [
+    { label: 'Demo Period (2025)', getRange: () => ({ from: new Date('2025-06-01T00:00:00'), to: new Date('2025-10-31T00:00:00') }) },
     { label: 'Last 7 Days', days: 6 }, // 6 days ago to today = 7 days total
     { label: 'Last 30 Days', days: 29 },
     { label: 'Last 90 Days', days: 89 },

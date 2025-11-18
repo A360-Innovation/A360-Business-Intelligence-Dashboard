@@ -328,6 +328,6 @@ export interface ClinicPerformanceData {
 
 // Types for Feedback Page
 export interface Feedback {
-    label: 'positive' | 'negative' | 'neutral';
     snippet: string;
+    label: 'positive' | 'negative' | 'neutral';
 }
