@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import Tooltip from './Tooltip';
-import { MoreHorizontal } from 'lucide-react';
+import { HelpCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { cn } from '../lib/utils';
 
@@ -21,7 +21,7 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, tooltipText, child
           <div className="flex items-center space-x-2">
             {headerContent}
             <Tooltip content={tooltipText}>
-              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
             </Tooltip>
           </div>
         </div>

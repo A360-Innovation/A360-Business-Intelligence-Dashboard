@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Card } from './ui/card';
-import { FileText, Smile, BookOpen, TrendingUp, MoreHorizontal } from 'lucide-react';
+import { FileText, Smile, BookOpen, TrendingUp, HelpCircle } from 'lucide-react';
+import Tooltip from './Tooltip';
 
 interface MetricCardProps {
   title: string;
@@ -9,6 +10,7 @@ interface MetricCardProps {
   subtitle: string;
   icon: string;
   onClick: () => void;
+  tooltipText?: string;
 }
 
 const iconMap: { [key: string]: React.ElementType } = {
@@ -18,7 +20,7 @@ const iconMap: { [key: string]: React.ElementType } = {
   TrendingUp,
 };
 
-const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, icon, onClick }) => {
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, icon, onClick, tooltipText }) => {
   const Icon = iconMap[icon] || FileText;
 
   return (
@@ -31,7 +33,11 @@ const MetricCard: React.FC<MetricCardProps> = ({ title, value, subtitle, icon, o
           <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
             <Icon className="h-6 w-6 text-primary" />
           </div>
-          <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+          <div onClick={(e) => e.stopPropagation()}>
+            <Tooltip content={tooltipText || "Click to view detailed AI analysis"}>
+              <HelpCircle className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+            </Tooltip>
+          </div>
         </div>
         <div className="mt-4">
           <p className="text-3xl font-bold text-foreground">{value}</p>

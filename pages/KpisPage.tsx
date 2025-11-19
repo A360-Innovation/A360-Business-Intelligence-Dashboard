@@ -106,7 +106,7 @@ const KpisPage: React.FC = () => {
                                         <th className="font-semibold p-3 text-center">Avg. Satisfaction</th>
                                         <th className="font-semibold p-3 text-center">Avg. Education</th>
                                         <th className="font-semibold p-3 text-center">Objections</th>
-                                        <th className="font-semibold p-3">Top Problems</th>
+                                        <th className="font-semibold p-3">Top Concerns</th>
                                         <th className="font-semibold p-3">Top Procedures</th>
                                     </tr>
                                 </thead>

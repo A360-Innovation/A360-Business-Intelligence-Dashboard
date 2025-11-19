@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { NarrativePaneInfo } from '../types';
 import MetricCard from '../components/MetricCard';
@@ -246,6 +247,15 @@ const DashboardPage: React.FC = () => {
   const handleCloseNarrative = () => {
     setNarrativePane({ ...narrativePane, isOpen: false });
   };
+  
+  const metricTooltips: { [key: string]: string } = {
+    'Total Transcripts': 'Total number of consultation transcripts processed and analyzed in the selected period.',
+    'Total Transcripts This Month': 'Total number of consultation transcripts processed and analyzed in the selected period.',
+    'Total Transcripts This Week': 'Total number of consultation transcripts processed and analyzed in the selected period.',
+    'Overall Satisfaction Score': 'Average sentiment score derived from patient language indicating satisfaction.',
+    'Education Effectiveness': 'AI-evaluated score measuring how well patients understood the treatment plan.',
+    'Top Procedures Recommended': 'The most frequent procedures recommended by practitioners during consultations.',
+  };
 
   const DashboardSubHeader = () => (
     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
@@ -335,6 +345,7 @@ const DashboardPage: React.FC = () => {
               subtitle={metric.subtitle}
               icon={metric.icon}
               onClick={() => handleOpenNarrative(metric.title)}
+              tooltipText={metricTooltips[metric.title]}
             />
           ))}
         </div>
