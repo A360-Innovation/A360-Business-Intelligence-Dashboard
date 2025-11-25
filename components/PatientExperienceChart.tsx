@@ -35,7 +35,7 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
   return (
     <DashboardCard title="Patient Experience & Sentiment" tooltipText="Scores are derived from NLP markers in transcripts, analyzing patient language for satisfaction and understanding.">
       <div style={{ width: '100%', height: 350 }}>
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <AreaChart data={combinedData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <defs>
               <linearGradient id="satisfactionGradient" x1="0" y1="0" x2="0" y2="1">

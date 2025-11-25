@@ -73,7 +73,7 @@ const PractitionerDetail: React.FC<PractitionerDetailProps> = ({ practitioner })
                     className="lg:col-span-3"
                 >
                    <div style={{ width: '100%', height: 350 }}>
-                       <ResponsiveContainer>
+                       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={practitioner.skillScores}>
                                 <PolarGrid stroke="hsl(var(--border))"/>
                                 <PolarAngleAxis dataKey="skill" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} />

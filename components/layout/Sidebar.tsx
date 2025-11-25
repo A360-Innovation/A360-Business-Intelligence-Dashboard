@@ -2,7 +2,7 @@
 import React from 'react';
 import { Page } from '../../types';
 import { cn } from '../../lib/utils';
-import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut, TrendingUp, BarChart3 } from 'lucide-react';
+import { LayoutDashboard, BotMessageSquare, Mic, Beaker, Target, BookText, Settings, X, LogOut, TrendingUp, BarChart3, FileText } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface SidebarProps {
@@ -25,6 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ currentPage, setCurrentPage, isOpen, 
       category: 'Analytics',
       items: [
         { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { id: 'transcripts', label: 'Transcripts Explorer', icon: FileText },
         { id: 'opportunities', label: 'Opportunities', icon: Target },
         { id: 'treatments', label: 'Treatments', icon: Beaker },
       ]

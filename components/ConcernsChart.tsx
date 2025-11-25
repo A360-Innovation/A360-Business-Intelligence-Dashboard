@@ -61,7 +61,7 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
       <div className="w-full flex flex-col md:flex-row items-center -mt-4 md:h-[350px]">
         {/* Chart Container */}
         <div className="w-full md:w-1/2 h-[250px] md:h-full relative">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <PieChart>
               <Pie
                 data={activeData}
@@ -95,7 +95,7 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
               {hoveredData ? (
                   <>
                       <span className="text-3xl font-bold text-foreground">{hoveredData.value}%</span>
-                      <span className="text-xs text-muted-foreground mt-1 leading-tight break-words w-full">{hoveredData.name}</span>
+                      <span className="text-xl font-bold text-foreground leading-tight break-words w-full">{hoveredData.name}</span>
                   </>
               ) : (
                    <>

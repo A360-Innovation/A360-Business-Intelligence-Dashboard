@@ -1,5 +1,5 @@
 
-export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance';
+export type Page = 'dashboard' | 'chat' | 'podcasts' | 'practice' | 'treatments' | 'journey' | 'performance' | 'forecasting' | 'market' | 'opportunities' | 'prompts' | 'settings' | 'kpis' | 'clinicPerformance' | 'transcripts';
 
 export type Timeframe = 'Monthly' | 'Weekly';
 
@@ -324,4 +324,26 @@ export interface ClinicPerformanceData {
     totalObjections: number;
     avgSatisfaction: number | null;
     avgEducation: number | null;
+}
+
+// Types for Transcripts Page
+export interface TranscriptSummary {
+    id: string;
+    day: string;
+    clinic: string;
+    duration_min: number;
+    num_turns: number;
+    satisfaction_score: number | null;
+    satisfaction_label: string;
+    top_procedures: string[];
+    top_problems: string[];
+}
+
+export interface TranscriptDetail extends TranscriptSummary {
+    consultation_at: string;
+    num_chars: number;
+    language: string;
+    raw_text: string;
+    education_effectiveness_score: number | null;
+    education_effectiveness_label: string;
 }

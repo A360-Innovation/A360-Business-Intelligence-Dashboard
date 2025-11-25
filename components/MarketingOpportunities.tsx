@@ -68,7 +68,7 @@ const MarketingOpportunities: React.FC<MarketingOpportunitiesProps> = ({ demogra
         <div>
           <h4 className="font-semibold text-foreground mb-3">Concerns by Demographics</h4>
           <div style={{ width: '100%', height: 320 }}>
-            <ResponsiveContainer>
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart
                 layout="vertical"
                 data={chartData}

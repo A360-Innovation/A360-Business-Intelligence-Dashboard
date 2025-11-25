@@ -27,7 +27,7 @@ const ShareOfVoiceChart: React.FC<ShareOfVoiceChartProps> = ({ data }) => {
             tooltipText="Measure your brand's visibility compared to competitors in online conversations and local media mentions."
         >
              <div style={{ width: '100%', height: 250 }}>
-                <ResponsiveContainer>
+                <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                     <BarChart layout="vertical" data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }} barSize={20}>
                         <defs>
                             <linearGradient id="gradPrimary" x1="0" y1="0" x2="1" y2="0">

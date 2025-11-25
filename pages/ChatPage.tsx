@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Button, Textarea } from '../components/ui/FormControls';
 import * as Icons from '../components/ui/Icons';
@@ -7,12 +8,14 @@ import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../contexts/AuthContext';
+import { FileText } from 'lucide-react';
 
 // --- Type Definitions ---
 interface ChatMessage {
     id: string;
     role: 'user' | 'model';
     content: string;
+    sources?: any[];
 }
 
 // --- Chat History Sidebar Component ---
@@ -100,101 +103,6 @@ const WelcomeScreen: React.FC<{ onSendMessage: (prompt: string) => void; isLoadi
 
 
 // --- Chat View Components ---
-const formatContent = (c: string): string => {
-    if (!c || c === 'loading') {
-      return c;
-    }
-  
-    let text = c;
-    let sources: string[] = [];
-  
-    // --- Phase 1: Deep Cleaning & Source Extraction ---
-    const allEvidenceRegex = /(?:\[t:|\(t:|\bInt:)([a-f0-9-–]+)/g;
-    
-    const matches = Array.from(text.matchAll(allEvidenceRegex));
-    if (matches.length > 0) {
-      sources = matches.map(match => match[1]);
-    }
-
-    text = text.replace(/\[t:[a-f0-9-–]+\]/g, '');
-    text = text.replace(/\(t:[a-f0-9-–]+\)/g, '');
-    text = text.replace(/\bInt:[a-f0-9-–]+\b/g, '');
-    
-    // Remove "Evidence:" blocks which contain raw data and are not meant for display.
-    text = text.replace(/\s*Evidence:.*?(?=\s*(?:Likely Root Cause:|Micro-script:)|$)/g, '');
-    
-    // Clean up stray numeric artifacts that appear on their own line.
-    text = text.replace(/^\s*\d+\.?\s*$/gm, '');
-
-    text = text.replace(/Group\)Patients/g, 'Group) Patients');
-  
-    // --- Phase 2: Intelligent Splitting ---
-    text = text.replace(/([a-z0-9.,?"'\)])([A-Z])/g, '$1 $2');
-    text = text.replace(/([a-z0-9.,?"'\)])([A-Z])/g, '$1 $2');
-  
-    text = text.replace(/(\.)(\d+\.\s)/g, '$1\n\n$2');
-  
-    const majorSectionKeywords = [
-        'Headline', 'Body', 'Opportunity Snapshot', 'Ranked Opportunities', 
-        'Ranked Concerns', 'Ranked List', 'Direct Answer', 'Red Flags to Avoid',
-        'Special Summer Offer', 'Call to Action', 'Hashtags',
-        'Summary of Key Patient Concerns'
-    ];
-    const listItemKeywords = [
-        'Product/Service', 'Relevance', 'Consultation trigger', 'Introduction script', 
-        'Example from Data', 'Clinical justification', 'Frequency missed', 'Frequency', 
-        'Revenue impact', 'Evidence', 'Success indicators', 'Why it matters', 
-        'Micro-script solution', 'When to use', 'Impact', 'Should have said', 'Expected outcome'
-    ];
-  
-    const allKeywords = [...majorSectionKeywords, ...listItemKeywords];
-    const keywordRegex = new RegExp(`(?<!\n)\\s*(${allKeywords.join('|')})`, 'g');
-    text = text.replace(keywordRegex, '\n\n$1');
-  
-    // --- Phase 3: Markdown Conversion & Final Cleanup ---
-    text = text.replace(/\*\*(.*?)\*\*/g, '$1');
-    text = text.replace(/\s*\*\s*/g, ' ');
-    text = text.replace(/\*$/gm, '');
-    text = text.replace(/\.\*/g, '.');
-    text = text.replace(/:\*/g, ':');
-    text = text.replace(/\* /g, ' ');
-    text = text.replace(/\*/g, '');
-
-    text = text.split('\n').map(line => {
-        line = line.trim();
-        if (!line) return line;
-
-        const majorKeywordMatch = majorSectionKeywords.find(kw => line.startsWith(kw));
-        if (majorKeywordMatch) {
-            const restOfLine = line.substring(majorKeywordMatch.length).replace(/^:\s*/, '').trim();
-            return `### ${majorKeywordMatch}\n${restOfLine}`;
-        }
-
-        const listItemKeywordMatch = listItemKeywords.find(kw => line.startsWith(kw));
-        if (listItemKeywordMatch) {
-            const restOfLine = line.substring(listItemKeywordMatch.length).replace(/^:\s*/, '').trim();
-            return `\n- **${listItemKeywordMatch}:** ${restOfLine}`;
-        }
-        
-        if (line.match(/^\d+\.\s/)) {
-            return `\n${line}`;
-        }
-
-        return line;
-    }).join('\n');
-  
-    // --- Phase 4: Final Polishing ---
-    text = text.replace(/\n{3,}/g, '\n\n').trim();
-    
-    // --- Phase 5: Append Sources ---
-    if (sources.length > 0) {
-        const uniqueSources = [...new Set(sources)];
-        text += `\n\n### Sources\n${uniqueSources.map(s => `- \`${s}\``).join('\n')}`;
-    }
-
-    return text;
-};
-
 const FormattedResponse: React.FC<{ content: string }> = ({ content }) => {
     if (content === '') {
         return (
@@ -204,11 +112,9 @@ const FormattedResponse: React.FC<{ content: string }> = ({ content }) => {
         );
     }
     
-    const formattedContent = formatContent(content);
-
     return (
-        <div className="prose max-w-none prose-p:my-2 prose-ul:my-2 prose-ol:my-2 prose-strong:font-semibold">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{formattedContent}</ReactMarkdown>
+        <div className="prose max-w-none prose-p:my-2 prose-p:leading-relaxed prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-strong:font-semibold text-foreground">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
         </div>
     );
 };
@@ -217,17 +123,42 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
     if (message.role === 'user') {
         return (
             <div className="flex justify-end">
-                <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl max-w-lg">
-                    <p className="text-base">{message.content}</p>
+                <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl max-w-lg shadow-sm">
+                    <p className="text-base leading-relaxed">{message.content}</p>
                 </div>
             </div>
         );
     }
     
     return (
-         <div className="flex justify-start">
-            <div className="bg-card text-card-foreground px-4 py-3 rounded-2xl max-w-2xl border border-border">
+         <div className="flex justify-start max-w-3xl w-full">
+            <div className="bg-card text-card-foreground px-6 py-5 rounded-2xl border border-border shadow-sm w-full">
                 <FormattedResponse content={message.content} />
+                
+                {message.sources && message.sources.length > 0 && (
+                    <div className="mt-6 pt-4 border-t border-border">
+                        <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
+                            <FileText className="h-3 w-3" /> Sources
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {message.sources.map((source, idx) => (
+                                <div key={idx} className="flex items-center gap-3 p-2.5 rounded-lg bg-secondary/30 hover:bg-secondary/60 transition-colors border border-border/50 cursor-pointer group">
+                                    <div className="flex-shrink-0 w-6 h-6 rounded-full bg-background text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 border border-border flex items-center justify-center text-xs font-bold transition-colors">
+                                        {source.citation || idx + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-medium text-foreground truncate">
+                                            Transcript: {source.transcript_id?.slice(0, 8)}...
+                                        </p>
+                                        <p className="text-[10px] text-muted-foreground truncate mt-0.5">
+                                            Consultation Record
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -235,7 +166,7 @@ const MessageBubble: React.FC<{ message: ChatMessage }> = ({ message }) => {
 
 const ChatView: React.FC<{ messages: ChatMessage[]; messagesEndRef: React.RefObject<HTMLDivElement> }> = ({ messages, messagesEndRef }) => {
     return (
-        <div className="w-full max-w-3xl mx-auto pt-12 px-4 space-y-6">
+        <div className="w-full max-w-4xl mx-auto pt-12 px-4 space-y-8">
             {messages.map(msg => <MessageBubble key={msg.id} message={msg} />)}
             <div ref={messagesEndRef} />
         </div>
@@ -328,6 +259,7 @@ const ChatPage: React.FC = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages, isLoading]);
 
+    // Re-implemented stream iterator to handle SSE correctly
     async function* streamAsyncIterator(stream: ReadableStream<Uint8Array>) {
         const reader = stream.getReader();
         const decoder = new TextDecoder();
@@ -342,10 +274,10 @@ const ChatPage: React.FC = () => {
                 buffer += decoder.decode(value, { stream: true });
                 let eolIndex;
                 while ((eolIndex = buffer.indexOf('\n')) >= 0) {
-                    const line = buffer.slice(0, eolIndex).trim();
-                    if (line) {
-                      yield line;
-                    }
+                    // Important: Do not trim() the line here, as it removes necessary indentation for markdown
+                    // and potential leading spaces in JSON strings. Just remove the carriage return.
+                    const line = buffer.slice(0, eolIndex).replace(/\r$/, '');
+                    yield line;
                     buffer = buffer.slice(eolIndex + 1);
                 }
             }
@@ -377,8 +309,10 @@ const ChatPage: React.FC = () => {
                     'Authorization': `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify({
-                    conversation_id: "demo-124", 
+                    conversation_id: "demo-124", // In a real app, manage this ID
                     message: prompt,
+                    clinic: "", // Optional: Add clinic filter if needed
+                    top_k: 10
                 }),
                 signal,
             });
@@ -389,6 +323,7 @@ const ChatPage: React.FC = () => {
 
             let aiResponse = '';
             let currentEvent = '';
+            let sources: any[] = [];
 
             for await (const line of streamAsyncIterator(response.body)) {
                 if (signal.aborted) break;
@@ -396,30 +331,52 @@ const ChatPage: React.FC = () => {
                 if (line.startsWith('event:')) {
                     currentEvent = line.substring(6).trim();
                     if (currentEvent === 'end') {
-                        break;
+                        // Continue to read the final data payload if any, or break loop
                     }
                     continue;
                 }
 
                 if (line.startsWith('data:')) {
-                    if (currentEvent === 'message') {
-                        const data = line.substring(5).trim();
-                        if (data) {
-                            aiResponse += data;
-                            setMessages(prev => 
-                                prev.map(msg => 
-                                    msg.id === modelMessageId ? { ...msg, content: aiResponse } : msg
-                                )
-                            );
+                    const dataStr = line.substring(5);
+                    
+                    // Check for end of stream marker
+                    if (dataStr.trim() === '[DONE]') {
+                        break;
+                    }
+
+                    try {
+                        const data = JSON.parse(dataStr);
+
+                        if (currentEvent === 'metadata') {
+                            if (data.sources) {
+                                // Deduplicate sources based on transcript_id
+                                const uniqueSources = [...new Map(data.sources.map((item: any) => [item['transcript_id'], item])).values()];
+                                sources = uniqueSources;
+                            }
+                        } else if (currentEvent === 'message') {
+                            if (data.text) {
+                                aiResponse += data.text;
+                                setMessages(prev => 
+                                    prev.map(msg => 
+                                        msg.id === modelMessageId ? { ...msg, content: aiResponse, sources: sources } : msg
+                                    )
+                                );
+                            }
                         }
+                    } catch (e) {
+                        // If parsing fails, it might be a non-JSON keepalive or malformed line, safe to ignore in this context
+                        console.debug("Stream parse error or non-JSON data:", e);
                     }
                     continue;
                 }
-                
-                if (line.trim() === '') {
-                    currentEvent = '';
-                }
             }
+
+            // Final update with complete sources
+            setMessages(prev => 
+                prev.map(msg => 
+                    msg.id === modelMessageId ? { ...msg, content: aiResponse, sources: sources } : msg
+                )
+            );
     
         } catch (error) {
             if (error instanceof Error && error.name === 'AbortError') {

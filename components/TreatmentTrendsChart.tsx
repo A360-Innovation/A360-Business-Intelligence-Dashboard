@@ -44,7 +44,7 @@ const TreatmentTrendsChart: React.FC<TreatmentTrendsChartProps> = ({ data, onBar
   return (
     <DashboardCard title="Treatment Trends (Top 5 MoM)" tooltipText="Monthly comparisons are generated from transcript analysis to identify trends in recommended treatments.">
       <div style={{ width: '100%', height: 350 }}>
-        <ResponsiveContainer>
+        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart data={data} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
             <defs>
               {gradientColors.map((color, index) => (

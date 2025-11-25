@@ -16,6 +16,7 @@ import PromptsPage from './pages/PromptsPage';
 import SettingsPage from './pages/SettingsPage';
 import KpisPage from './pages/KpisPage';
 import ClinicPerformancePage from './pages/ClinicPerformancePage';
+import TranscriptsPage from './pages/TranscriptsPage';
 import { PlayerProvider, PlayerContext } from './contexts/PlayerContext';
 import Player from './components/Player';
 import ExpandedPlayer from './components/ExpandedPlayer';
@@ -45,6 +46,7 @@ const AuthenticatedApp: React.FC = () => {
     settings: 'Settings',
     kpis: 'Daily KPIs',
     clinicPerformance: 'Clinic Performance',
+    transcripts: 'Transcripts Explorer',
   };
 
   return (
@@ -98,6 +100,7 @@ const AuthenticatedApp: React.FC = () => {
           {currentPage === 'settings' && <SettingsPage />}
           {currentPage === 'kpis' && <KpisPage />}
           {currentPage === 'clinicPerformance' && <ClinicPerformancePage />}
+          {currentPage === 'transcripts' && <TranscriptsPage />}
         </main>
         {currentPodcast && <Player />}
         <ExpandedPlayer />

@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Procedure, TreatmentAnalysisData } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -105,7 +103,7 @@ const AnalysisDisplay: React.FC<AnalysisDisplayProps> = ({ treatment, analysisDa
                     className="lg:col-span-2"
                 >
                    <div style={{ width: '100%', height: 250 }}>
-                       <ResponsiveContainer>
+                       <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <BarChart data={analysisData.demographics.age_distribution} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                                 <CartesianGrid vertical={false} stroke="hsl(var(--border))" />
                                 <XAxis dataKey="age_range" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }} axisLine={false} tickLine={false} />

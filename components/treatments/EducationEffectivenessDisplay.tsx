@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Procedure, TreatmentEducationData } from '../../types';
 import { Card, CardHeader, CardTitle, CardContent } from '../ui/card';
@@ -104,7 +103,7 @@ const EducationEffectivenessDisplay: React.FC<EducationEffectivenessDisplayProps
                     className="lg:col-span-3"
                 >
                     <div style={{ width: '100%', height: 300 }}>
-                        <ResponsiveContainer>
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                             <PieChart>
                                 <Pie
                                     data={pieData}
