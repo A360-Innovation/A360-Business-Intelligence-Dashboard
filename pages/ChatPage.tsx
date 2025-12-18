@@ -406,8 +406,8 @@ const ChatPage: React.FC = () => {
                 .typing-indicator span:nth-child(2) { animation-delay: -0.2s; }
                 .typing-indicator span:nth-child(3) { animation-delay: -0.4s; }
                 @keyframes typing-bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1.0); } }
-                main::-webkit-scrollbar { display: none; }
-                main { -ms-overflow-style: none; scrollbar-width: none; }
+                /* Ocultar scrollbar solo para el área de chat si es necesario, 
+                   pero no para la etiqueta main globalmente */
             `}</style>
             
             <ChatHistorySidebar isOpen={isHistoryOpen} onClose={() => setIsHistoryOpen(false)} />

@@ -1,3 +1,4 @@
+
 import React, { ReactNode } from 'react';
 import Tooltip from './Tooltip';
 import { HelpCircle } from 'lucide-react';
@@ -14,7 +15,7 @@ interface DashboardCardProps {
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ title, tooltipText, children, className = '', headerContent }) => {
   return (
-    <Card className={cn("h-full flex flex-col shadow", className)}>
+    <Card className={cn("min-h-full flex flex-col shadow", className)}>
       <CardHeader>
         <div className="flex justify-between items-center">
           <CardTitle>{title}</CardTitle>

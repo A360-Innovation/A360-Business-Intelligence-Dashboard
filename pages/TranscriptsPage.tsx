@@ -282,8 +282,8 @@ const TranscriptsPage: React.FC = () => {
     const hasPrev = filters.offset > 0;
 
     return (
-        <div className="p-4 sm:p-6 lg:p-8 h-full flex flex-col">
-            <div className="mb-6 flex justify-between items-center flex-shrink-0">
+        <div className="p-4 sm:p-6 lg:p-8">
+            <div className="mb-6 flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Transcripts Explorer</h1>
                     <p className="text-muted-foreground mt-1">Search, filter, and analyze individual consultation transcripts.</p>
@@ -294,7 +294,7 @@ const TranscriptsPage: React.FC = () => {
                 </Button>
             </div>
 
-            <div className="space-y-4 flex-1 flex flex-col overflow-hidden">
+            <div className="space-y-4">
                 <TranscriptFilters 
                     filters={filters} 
                     setFilters={setFilters} 
@@ -302,15 +302,15 @@ const TranscriptsPage: React.FC = () => {
                     isSuperAdmin={isSuperAdmin} 
                 />
 
-                <DashboardCard title={`Transcripts (${total})`} tooltipText="List of processed consultation transcripts matching your filters." className="flex-1 flex flex-col overflow-hidden">
-                    <div className="flex flex-col h-full">
+                <DashboardCard title={`Transcripts (${total})`} tooltipText="List of processed consultation transcripts matching your filters.">
+                    <div className="flex flex-col">
                         {loading && transcripts.length === 0 ? (
-                            <div className="flex-1 flex items-center justify-center"><Loader /></div>
+                            <div className="py-20 flex items-center justify-center"><Loader /></div>
                         ) : error ? (
-                            <div className="flex-1 flex items-center justify-center text-destructive">{error}</div>
+                            <div className="py-20 flex items-center justify-center text-destructive">{error}</div>
                         ) : (
                             <>
-                                <div className="flex-1 overflow-auto -mx-6 px-6">
+                                <div className="overflow-x-auto -mx-6 px-6">
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-muted-foreground font-medium border-b border-border sticky top-0 bg-card z-10">
                                             <tr>
@@ -319,7 +319,7 @@ const TranscriptsPage: React.FC = () => {
                                                 <th className="py-3 px-4">Duration</th>
                                                 <th className="py-3 px-4">Satisfaction</th>
                                                 <th className="py-3 px-4">Top Procedures</th>
-                                                <th className="py-3 px-4">Details</th>
+                                                <th className="py-3 px-4 text-right">Details</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-border">
@@ -351,7 +351,7 @@ const TranscriptsPage: React.FC = () => {
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="py-3 px-4">
+                                                    <td className="py-3 px-4 text-right">
                                                         <Button variant="ghost" size="sm" onClick={() => setSelectedTranscriptId(t.id)} className="text-primary hover:text-primary/80 hover:bg-primary/10">
                                                             View <Info className="ml-2 h-4 w-4" />
                                                         </Button>
@@ -360,7 +360,7 @@ const TranscriptsPage: React.FC = () => {
                                             ))}
                                             {transcripts.length === 0 && (
                                                 <tr>
-                                                    <td colSpan={6} className="py-8 text-center text-muted-foreground">No transcripts found matching your filters.</td>
+                                                    <td colSpan={6} className="py-20 text-center text-muted-foreground">No transcripts found matching your filters.</td>
                                                 </tr>
                                             )}
                                         </tbody>

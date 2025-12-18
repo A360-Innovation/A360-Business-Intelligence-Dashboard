@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Calendar } from 'lucide-react';
 import { Button } from './ui/button';
@@ -91,7 +92,7 @@ const DateRangePicker: React.FC<DateRangePickerProps> = ({ value, onChange, clas
             </Button>
             
             {isOpen && (
-                <Card className="absolute top-full mt-2 w-full max-w-sm sm:w-[520px] sm:max-w-none p-4 z-10 shadow-lg right-0">
+                <Card className="absolute top-full mt-2 w-full max-w-sm sm:w-[520px] sm:max-w-none p-4 z-50 shadow-xl border border-border right-0 animate-in fade-in zoom-in-95 duration-200">
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="w-full sm:w-1/3 flex flex-col space-y-1">
                              {presetRanges.map(preset => (
