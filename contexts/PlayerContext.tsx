@@ -4,6 +4,7 @@
 import React, { createContext, useState, useRef, useEffect, ReactNode, useCallback } from 'react';
 import { Podcast, Subtitle } from '../types';
 import { useAuth } from './AuthContext';
+import { CHAT_API_BASE } from '../config';
 
 interface PlayerContextType {
   currentPodcast: Podcast | null;
@@ -77,7 +78,7 @@ export const PlayerProvider: React.FC<PlayerProviderProps> = ({ children }) => {
         setSubtitles([]); 
         
         try {
-            const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/${podcast.id}`, {
+            const response = await fetch(`${CHAT_API_BASE}/podcast/${podcast.id}`, {
                 headers: { 'Authorization': `Bearer ${session.access_token}` }
             });
             if (!response.ok) {

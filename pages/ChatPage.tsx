@@ -8,6 +8,7 @@ import { cn } from '../lib/utils';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from '../contexts/AuthContext';
+import { CHAT_API_BASE } from '../config';
 import { FileText } from 'lucide-react';
 
 // --- Type Definitions ---
@@ -302,7 +303,7 @@ const ChatPage: React.FC = () => {
         setMessages(prev => [...prev, userMessage, newModelMessage]);
     
         try {
-            const response = await fetch('https://chat-stream-production.up.railway.app/chat/stream', {
+            const response = await fetch(`${CHAT_API_BASE}/chat/stream`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

@@ -3,19 +3,38 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { TrendData } from '../types';
 import DashboardCard from './DashboardCard';
 
+interface BarClickPayload {
+  name?: string;
+  value?: number;
+  [key: string]: string | number | undefined;
+}
+
 interface TreatmentTrendsChartProps {
   data: TrendData[];
-  onBarClick: (payload: any) => void;
+  onBarClick: (payload: BarClickPayload) => void;
 }
 
 const gradientColors = ['hsl(212, 33%, 49%)', 'hsl(212, 33%, 59%)', 'hsl(212, 33%, 69%)', 'hsl(211, 35%, 75%)', 'hsl(217, 33%, 86%)'];
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  dataKey: string;
+  name: string;
+  value: number;
+  fill: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card p-3 border border-border rounded-lg shadow-sm">
           <p className="font-bold text-card-foreground mb-2">{label}</p>
-          {payload.map((pld: any) => (
+          {payload.map((pld) => (
             <p key={pld.dataKey} style={{ color: pld.fill }} className="text-sm font-semibold">
               {`${pld.name}: ${pld.value}`}
             </p>
@@ -27,8 +46,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   };
 
 // Custom shape for rounded bar tops
-const RoundedBar = (props: any) => {
-  const { fill, x, y, width, height } = props;
+interface RoundedBarProps {
+  fill?: string;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+}
+
+const RoundedBar = (props: RoundedBarProps) => {
+  const { fill, x = 0, y = 0, width = 0, height = 0 } = props;
   const radius = 6;
   return (
     <g>

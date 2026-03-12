@@ -60,6 +60,7 @@ export const generateAndPlayAudio = (text: string): Promise<void> => {
 
         audio.play().catch(e => {
           console.error("Audio playback failed (e.g., autoplay blocked):", e);
+          URL.revokeObjectURL(audio.src);
           // If play fails, we still resolve to not block the simulation,
           // but the user won't hear anything.
           resolve();

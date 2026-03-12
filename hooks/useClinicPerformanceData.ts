@@ -4,8 +4,9 @@
 import { useState, useEffect } from 'react';
 import { KpiData, ClinicPerformanceData } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { METRICS_API_BASE } from '../config';
 
-const API_BASE = 'https://rag-aesthetic-production.up.railway.app';
+const API_BASE = METRICS_API_BASE;
 
 interface UseClinicPerformanceDataParams {
     from_day: string;

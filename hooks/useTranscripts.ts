@@ -2,8 +2,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TranscriptSummary, TranscriptDetail } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { CHAT_API_BASE } from '../config';
 
-const API_BASE = 'https://chat-stream-production.up.railway.app';
+const API_BASE = CHAT_API_BASE;
 
 interface UseTranscriptsParams {
     date_from?: string;

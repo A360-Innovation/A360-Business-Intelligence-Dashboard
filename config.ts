@@ -10,5 +10,10 @@ export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // For this demo, it's left empty. Provide your key here to enable voice generation.
 export const ELEVENLABS_API_KEY = '';
 
+// API Base URLs
+// In production, these should be set via environment variables.
+export const METRICS_API_BASE = 'https://rag-aesthetic-production.up.railway.app';
+export const CHAT_API_BASE = 'https://chat-stream-production.up.railway.app';
+
 // The Gemini API Key is handled separately via `process.env.API_KEY`
 // as per the project's execution environment setup.

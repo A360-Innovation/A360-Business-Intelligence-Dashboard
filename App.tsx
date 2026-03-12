@@ -24,6 +24,7 @@ import { cn } from './lib/utils';
 import { Menu } from 'lucide-react';
 import LoginPage from './pages/LoginPage';
 import { useAuth } from './contexts/AuthContext';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const AuthenticatedApp: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
@@ -86,21 +87,23 @@ const AuthenticatedApp: React.FC = () => {
           </div>
         </header>
         <main className={cn("flex-1 overflow-y-auto bg-background", currentPodcast && "pb-24")}>
-          {currentPage === 'dashboard' && <DashboardPage />}
-          {currentPage === 'chat' && <ChatPage />}
-          {currentPage === 'podcasts' && <PodcastsPage />}
-          {currentPage === 'practice' && <PracticePage />}
-          {currentPage === 'treatments' && <TreatmentAnalysisPage />}
-          {currentPage === 'journey' && <PatientJourneyPage />}
-          {currentPage === 'performance' && <PerformancePage />}
-          {currentPage === 'forecasting' && <ForecastingPage />}
-          {currentPage === 'market' && <MarketIntelPage />}
-          {currentPage === 'opportunities' && <OpportunitiesPage />}
-          {currentPage === 'prompts' && <PromptsPage />}
-          {currentPage === 'settings' && <SettingsPage />}
-          {currentPage === 'kpis' && <KpisPage />}
-          {currentPage === 'clinicPerformance' && <ClinicPerformancePage />}
-          {currentPage === 'transcripts' && <TranscriptsPage />}
+          <ErrorBoundary>
+            {currentPage === 'dashboard' && <DashboardPage />}
+            {currentPage === 'chat' && <ChatPage />}
+            {currentPage === 'podcasts' && <PodcastsPage />}
+            {currentPage === 'practice' && <PracticePage />}
+            {currentPage === 'treatments' && <TreatmentAnalysisPage />}
+            {currentPage === 'journey' && <PatientJourneyPage />}
+            {currentPage === 'performance' && <PerformancePage />}
+            {currentPage === 'forecasting' && <ForecastingPage />}
+            {currentPage === 'market' && <MarketIntelPage />}
+            {currentPage === 'opportunities' && <OpportunitiesPage />}
+            {currentPage === 'prompts' && <PromptsPage />}
+            {currentPage === 'settings' && <SettingsPage />}
+            {currentPage === 'kpis' && <KpisPage />}
+            {currentPage === 'clinicPerformance' && <ClinicPerformancePage />}
+            {currentPage === 'transcripts' && <TranscriptsPage />}
+          </ErrorBoundary>
         </main>
         {currentPodcast && <Player />}
         <ExpandedPlayer />

@@ -15,6 +15,7 @@ import { Button } from '../components/ui/button';
 import { cn } from '../lib/utils';
 import { Download, HelpCircle, ChevronDown } from 'lucide-react';
 import { useDashboardData } from '../hooks/useDashboardData';
+import { CHAT_API_BASE } from '../config';
 import Loader from '../components/icons/Loader';
 import DateRangePicker from '../components/DateRangePicker';
 import { useAuth } from '../contexts/AuthContext';
@@ -194,7 +195,7 @@ const DashboardPage: React.FC = () => {
     });
 
     try {
-      const endpoint = `https://chat-stream-production.up.railway.app/reports/${endpointSlug}?months=4`;
+      const endpoint = `${CHAT_API_BASE}/reports/${endpointSlug}?months=4`;
       const response = await fetch(endpoint, {
           headers: { 'Authorization': `Bearer ${session.access_token}` }
       });

@@ -11,8 +11,9 @@ import { Button } from '../components/ui/button';
 // Fix: Import the 'Tooltip' component.
 import Tooltip from '../components/Tooltip';
 import { useAuth } from '../contexts/AuthContext';
+import { CHAT_API_BASE } from '../config';
 
-const API_BASE_URL = 'https://chat-stream-production.up.railway.app/api';
+const API_BASE_URL = `${CHAT_API_BASE}/api`;
 
 const PromptsPage: React.FC = () => {
     const { session } = useAuth();
@@ -47,7 +48,7 @@ const PromptsPage: React.FC = () => {
             }
             const data = await response.json();
             
-            const formattedPrompts: Prompt[] = (data.prompts || []).map((p: any) => ({
+            const formattedPrompts: Prompt[] = (data.prompts || []).map((p: { id: string; name: string; category: string; description: string; content_preview?: string }) => ({
                 id: p.id,
                 title: p.name,
                 category: p.category,

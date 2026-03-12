@@ -19,7 +19,7 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
   const [drilldownTitle, setDrilldownTitle] = useState('');
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const handlePieClick = (entry: any) => {
+  const handlePieClick = (entry: Concern) => {
     onSliceClick(entry.name);
     if (entry.breakdown) {
       setDrilldownData(entry.breakdown);
@@ -34,7 +34,7 @@ const ConcernsChart: React.FC<ConcernsChartProps> = ({ data, onSliceClick }) => 
     setActiveIndex(null); // Reset hover on back
   };
 
-  const onPieEnter = (_: any, index: number) => {
+  const onPieEnter = (_: unknown, index: number) => {
     setActiveIndex(index);
   };
   

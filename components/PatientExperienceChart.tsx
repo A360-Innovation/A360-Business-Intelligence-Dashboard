@@ -3,18 +3,36 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { PatientExperienceData } from '../types';
 import DashboardCard from './DashboardCard';
 
+interface PointClickPayload {
+  month: string;
+  satisfaction: number;
+  education: number;
+}
+
 interface PatientExperienceChartProps {
   satisfactionData: PatientExperienceData[];
   educationData: PatientExperienceData[];
-  onPointClick: (payload: any) => void;
+  onPointClick: (payload: PointClickPayload) => void;
 }
 
-const CustomTooltip = ({ active, payload, label }: any) => {
+interface TooltipPayloadEntry {
+  name: string;
+  value: number;
+  color: string;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+}
+
+const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-card p-3 border border-border rounded-lg shadow-sm">
           <p className="font-bold text-card-foreground mb-2">{label}</p>
-          {payload.map((pld: any, index: number) => (
+          {payload.map((pld, index: number) => (
             <p key={index} style={{ color: pld.color }} className="text-sm">
               {`${pld.name}: ${pld.value}%`}
             </p>
@@ -29,7 +47,7 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
   const combinedData = satisfactionData.map((item, index) => ({
     month: item.month,
     satisfaction: item.score,
-    education: educationData[index].score,
+    education: educationData[index]?.score ?? 0,
   }));
   
   return (
@@ -68,20 +86,19 @@ const PatientExperienceChart: React.FC<PatientExperienceChartProps> = ({ satisfa
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: 'hsl(var(--primary))', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
                 // Fix: Correctly access the data payload from the 'props' object provided by recharts instead of the raw event target.
-                activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload), stroke: 'hsl(var(--primary))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
+                activeDot={{ r: 6, onClick: (props: { payload: PointClickPayload }) => onPointClick(props.payload), stroke: 'hsl(var(--primary))', fill: 'hsl(var(--card))', strokeWidth: 2 }}
                 className="cursor-pointer"
                 style={{ filter: `drop-shadow(0 2px 4px hsl(var(--primary) / 0.4))` }}
             />
-             <Area 
-                name="Education Effectiveness" 
-                type="monotone" 
+             <Area
+                name="Education Effectiveness"
+                type="monotone"
                 dataKey="education"
                 stroke="hsl(var(--success))"
                 fill="url(#educationGradient)"
                 strokeWidth={2.5}
                 dot={{ r: 4, fill: 'hsl(var(--success))', stroke: 'hsl(var(--card))', strokeWidth: 2 }}
-                // Fix: Correctly access the data payload from the 'props' object provided by recharts instead of the raw event target.
-                activeDot={{ r: 6, onClick: (props: any) => onPointClick(props.payload), stroke: 'hsl(var(--success))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
+                activeDot={{ r: 6, onClick: (props: { payload: PointClickPayload }) => onPointClick(props.payload), stroke: 'hsl(var(--success))', fill: 'hsl(var(--card))', strokeWidth: 2 }} 
                 className="cursor-pointer"
                 style={{ filter: `drop-shadow(0 2px 4px hsl(var(--success) / 0.4))` }}
             />

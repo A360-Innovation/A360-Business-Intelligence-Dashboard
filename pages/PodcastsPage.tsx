@@ -9,6 +9,7 @@ import { cn } from '../lib/utils';
 import { Button } from '../components/ui/button';
 import Loader from '../components/icons/Loader';
 import { useAuth } from '../contexts/AuthContext';
+import { CHAT_API_BASE } from '../config';
 
 const rapportDetails = {
     summary: "Master the first three minutes of your consultation. We cover verbal and non-verbal cues to build trust and make patients feel heard.",
@@ -275,7 +276,7 @@ const PodcastsPage: React.FC = () => {
         setIsLoading(true);
         setError(null);
         try {
-            const response = await fetch('https://chat-stream-production.up.railway.app/podcast/list', {
+            const response = await fetch(`${CHAT_API_BASE}/podcast/list`, {
                 headers: { 'Authorization': `Bearer ${session.access_token}` }
             });
             if (!response.ok) {
@@ -283,7 +284,7 @@ const PodcastsPage: React.FC = () => {
             }
             const data = await response.json();
 
-            const sortedPodcasts = (data.podcasts || []).sort((a: any, b: any) => {
+            const sortedPodcasts = (data.podcasts || []).sort((a: { created_at?: string }, b: { created_at?: string }) => {
                 const dateA = a.created_at || 0;
                 const dateB = b.created_at || 0;
                 return new Date(dateB).getTime() - new Date(dateA).getTime();
@@ -314,7 +315,7 @@ const PodcastsPage: React.FC = () => {
             throw new Error("Authentication is required to generate podcasts.");
         }
         try {
-            const response = await fetch(`https://chat-stream-production.up.railway.app/podcast/generate-audio?topic=${topic}&output_format=link&months=4`, {
+            const response = await fetch(`${CHAT_API_BASE}/podcast/generate-audio?topic=${topic}&output_format=link&months=4`, {
                 headers: { 'Authorization': `Bearer ${session.access_token}` }
             });
             if (!response.ok) {

@@ -2,8 +2,9 @@
 import { useState, useEffect } from 'react';
 import { TreatmentAnalysisData, TreatmentObjection, TreatmentCrossSell, TreatmentEducationData } from '../types';
 import { useAuth } from '../contexts/AuthContext';
+import { METRICS_API_BASE } from '../config';
 
-const API_BASE = 'https://rag-aesthetic-production.up.railway.app/treatments';
+const API_BASE = `${METRICS_API_BASE}/treatments`;
 
 export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: string | null, startDate: string, endDate: string) => {
     const { session } = useAuth();
@@ -79,12 +80,12 @@ export const useTreatmentAnalysis = (treatmentName: string | null, clinicName: s
                         { title: "Avg. Satisfaction", value: `${analysisJSON.avg_satisfaction_pct}%` },
                         { title: "Conversion Rate", value: "82%" }, // Static for now as not in API
                     ],
-                    objections: objectionsJSON.objections.map((o: any): TreatmentObjection => ({
+                    objections: objectionsJSON.objections.map((o: { type: string; description: string; frequency?: number }): TreatmentObjection => ({
                         title: o.type,
                         description: o.description,
                         frequency: o.frequency,
                     })),
-                    crossSell: crossSellJSON.cross_sell_opportunities.map((cs: any): TreatmentCrossSell => ({
+                    crossSell: crossSellJSON.cross_sell_opportunities.map((cs: { procedure: string; description: string; frequency?: number }): TreatmentCrossSell => ({
                         name: cs.procedure,
                         rationale: cs.description,
                         frequency: cs.frequency,

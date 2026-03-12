@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { KpiData } from '../types';
+import { METRICS_API_BASE } from '../config';
 
-const API_BASE = 'https://rag-aesthetic-production.up.railway.app';
+const API_BASE = METRICS_API_BASE;
 
 export const useClinicsList = () => {
     const { session, isSuperAdmin } = useAuth();

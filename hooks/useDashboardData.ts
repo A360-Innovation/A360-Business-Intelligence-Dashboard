@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { DashboardData, HighLevelMetric, Concern, Procedure, TrendData, PatientExperienceData } from '../types';
 import { DASHBOARD_DATA } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import { METRICS_API_BASE } from '../config';
 
-const API_BASE = 'https://rag-aesthetic-production.up.railway.app/metrics';
+const API_BASE = `${METRICS_API_BASE}/metrics`;
 
 interface UseDashboardDataProps {
     startDate: string;
@@ -106,8 +107,8 @@ export const useDashboardData = ({ startDate, endDate, clinic }: UseDashboardDat
                 });
 
                 // 5. Transform Patient Experience
-                const satisfactionSeries = experienceData.series.find((s: any) => s.name === 'Overall Satisfaction');
-                const educationSeries = experienceData.series.find((s: any) => s.name === 'Education Effectiveness');
+                const satisfactionSeries = experienceData.series.find((s: { name: string; data: (number | null)[] }) => s.name === 'Overall Satisfaction');
+                const educationSeries = experienceData.series.find((s: { name: string; data: (number | null)[] }) => s.name === 'Education Effectiveness');
 
                 const satisfactionScores: PatientExperienceData[] = satisfactionSeries ? experienceData.labels.map((month: string, index: number) => ({
                     month,
