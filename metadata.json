@@ -1,7 +1,0 @@
-{
-  "name": "A360 Intelligence",
-  "description": "A modern, interactive dashboard for A360 Intelligence, a dermatology/aesthetic clinic, displaying de-identified consultation data in real time with various analytical charts and metrics.",
-  "requestFramePermissions": [
-    "microphone"
-  ]
-}
